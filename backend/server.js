@@ -19,14 +19,44 @@ const chatRoutes = require("./routes/chat");
 const articlesRoutes = require("./routes/articles");
 const appointmentsRoutes = require("./routes/appointments");
 const adminRoutes = require("./routes/admin");
+const seedRoutes = require("./routes/seed");
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true
-}));
+// CORS configuration - must be before routes
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'https://localhost:5173',
+      'https://localhost:5174'
+    ].filter(Boolean);
+    
+    // Allow all origins in development
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all for now
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // 24 hours
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(logger);
 
@@ -45,6 +75,7 @@ app.get("/", (req, res) => {
       chat: "/api/chat",
       articles: "/api/articles",
       admin: "/api/admin",
+      seed: "/api/seed",
       facilities: "/api/facilities",
       database: "/api/database",
       debug: "/api/debug"
@@ -65,6 +96,7 @@ app.use("/api/reminders", remindersRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/articles", articlesRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/seed", seedRoutes);
 
 // Legacy routes (for backward compatibility)
 app.use("/facilities", facilityRoutes);

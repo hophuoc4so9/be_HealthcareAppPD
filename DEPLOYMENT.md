@@ -13,64 +13,97 @@
    - Region: Singapore (gần Việt Nam nhất)
    - Plan: Free
    - Click "Create Database"
-   - **Lưu lại `Internal Database URL`**
+   - **Copy `Internal Database URL`** (dạng: postgresql://user:password@host/db)
 
 2. **Deploy Backend:**
    - Click "New +" → "Web Service"
-   - Connect GitHub repository
+   - Connect to GitHub repository
    - Chọn repo: `be_HealthcareAppPD`
    - Name: `healthcare-backend`
-   - Region: Singapore
+   - Region: Singapore  
    - Branch: `main`
-   - Root Directory: `backend`
+   - **Root Directory: `backend`** ⚠️ QUAN TRỌNG
    - Runtime: Node
    - Build Command: `npm install`
    - Start Command: `node server.js`
    - Plan: Free
+   - Click "Create Web Service"
 
 3. **Thêm Environment Variables:**
+   Vào tab "Environment" của service vừa tạo, thêm:
    ```
    NODE_ENV=production
-   PORT=5000
+   PORT=10000
    DATABASE_URL=<paste Internal Database URL từ bước 1>
-   JWT_SECRET=<tạo random string dài, ví dụ: aB3$xYz9@mK2#pL8qR5>
+   JWT_SECRET=your_super_secret_key_here_change_this
    JWT_EXPIRES_IN=24h
-   FRONTEND_URL=https://your-app.vercel.app
+   FRONTEND_URL=https://your-app-name.vercel.app
    ```
+   
+   Click "Save Changes" → Service sẽ tự động redeploy
 
-4. **Initialize Database:**
-   - Sau khi deploy xong, vào Shell của service
-   - Run: `node -e "require('./config/database').initializeDatabase()"`
+4. **Khởi tạo Database Schema:**
+   
+   **Cách 1: Dùng API (Khuyến nghị)**
+   
+   Mở trình duyệt, truy cập:
+   ```
+   https://healthcare-backend.onrender.com/api/database/initialize
+   ```
+   
+   Hoặc dùng cURL:
+   ```bash
+   curl -X POST https://healthcare-backend.onrender.com/api/database/initialize
+   ```
+   
+   **Cách 2: Dùng Shell**
+   
+   - Vào service → Tab "Shell"
+   - Run:
+   ```bash
+   curl -X POST http://localhost:10000/api/database/initialize
+   ```
+   
+   **Kiểm tra:**
+   ```
+   https://healthcare-backend.onrender.com/api/database/status
+   ```
+   
+   Phải thấy: `"schema_complete": true`
 
 ### Frontend Deployment (Vercel)
 
-1. **Push code lên GitHub:**
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/hophuoc4so9/be_HealthcareAppPD.git
-   git push -u origin main
-   ```
-
-2. **Deploy trên Vercel:**
-   - Vào https://vercel.com
-   - Click "Add New" → "Project"
+1. **Deploy trên Vercel:**
+   - Vào https://vercel.com/new
    - Import GitHub repo: `be_HealthcareAppPD`
-   - Framework Preset: Vite
-   - Root Directory: `./` (leave empty)
+   - Project Name: `healthcare-admin` (hoặc tên bạn thích)
+   - Framework Preset: **Vite**
+   - **Root Directory: `./`** (để trống)
    - Build Command: `npm run build`
    - Output Directory: `dist`
    - Install Command: `npm install`
+   - Click "Deploy"
 
-3. **Thêm Environment Variable:**
-   - Settings → Environment Variables
-   - Thêm: `VITE_API_URL` = `https://healthcare-backend.onrender.com/api`
-   - Apply to: Production, Preview, Development
+2. **Thêm Environment Variable:**
+   - Sau khi deploy xong, vào Settings → Environment Variables
+   - Thêm biến:
+     - Key: `VITE_API_URL`
+     - Value: `https://healthcare-backend.onrender.com/api`
+     - Environments: **Production, Preview, Development** (chọn cả 3)
+   - Click "Save"
 
-4. **Redeploy:**
-   - Deployments → Latest → Redeploy
+3. **Redeploy với Environment Variable mới:**
+   - Vào tab "Deployments"
+   - Click vào deployment mới nhất
+   - Click nút "..." → "Redeploy"
+   - Chọn "Use existing Build Cache" → Redeploy
+
+4. **Cập nhật CORS trên Backend:**
+   - Quay lại Render dashboard
+   - Vào service `healthcare-backend` → Environment
+   - Update biến `FRONTEND_URL` = URL Vercel vừa được tạo
+     - Ví dụ: `https://healthcare-admin-abc123.vercel.app`
+   - Save → Service tự động restart
 
 ### Sau khi deploy
 
