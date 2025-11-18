@@ -18,4 +18,7 @@ router.post('/facilities', seedController.seedFacilities);
 // GET /api/seed/count - Get facilities count
 router.get('/count', seedController.getCount);
 
+// DELETE /api/seed/facilities - Clear all facilities
+router.delete('/facilities', seedController.clearFacilities);
+
 module.exports = router;

@@ -131,6 +131,23 @@ class SeedController {
       next(error);
     }
   }
+
+  /**
+   * Clear all facilities
+   * DELETE /api/seed/facilities
+   */
+  async clearFacilities(req, res, next) {
+    try {
+      await pool.query('TRUNCATE TABLE health_facilities_points RESTART IDENTITY');
+      
+      res.json({
+        success: true,
+        message: 'All facilities cleared successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new SeedController();
