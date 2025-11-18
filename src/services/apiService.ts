@@ -1,10 +1,38 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+interface LoginResponse {
+  success: boolean;
+  data: {
+    user: {
+      id: string;
+      email: string;
+      role: string;
+      is_active: boolean;
+    };
+    token: string;
+  };
+}
+
 class ApiService {
   private baseURL: string;
 
   constructor() {
     this.baseURL = API_BASE_URL;
+  }
+
+  async login(email: string, password: string): Promise<LoginResponse> {
+    const response = await fetch(`${this.baseURL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw { response: { data: error } };
+    }
+
+    return response.json();
   }
 
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
