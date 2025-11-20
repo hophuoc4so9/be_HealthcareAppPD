@@ -73,9 +73,8 @@ for ($i = 0; $i -lt $batches; $i++) {
 
 # Verify
 Write-Host "`n[4] Verifying..." -ForegroundColor Yellow
-$testResult = Invoke-RestMethod `
-    -Uri "https://be-healthcareapppd.onrender.com/api/facilities/nearest?lat=10.3137&lng=105.4815&limit=1" `
-    -Headers $headers
+$testUrl = "https://be-healthcareapppd.onrender.com/api/facilities/nearest?lat=10.3137&lng=105.4815&limit=1"
+$testResult = Invoke-RestMethod -Uri $testUrl -Headers $headers
 
 Write-Host "    Sample name: " -NoNewline -ForegroundColor Cyan
 Write-Host $testResult.data[0].name -ForegroundColor White

@@ -46,15 +46,25 @@ class PatientService {
   }
 
   /**
-   * Lấy patient profile
+   * Lấy patient profile (tạo tự động nếu chưa tồn tại)
    * @param {string} userId
    * @returns {Promise<Object>}
    */
   async getProfile(userId) {
-    const profile = await patientRepository.getProfileByUserId(userId);
+    let profile = await patientRepository.getProfileByUserId(userId);
 
+    // Auto-create profile if it doesn't exist
     if (!profile) {
-      throw new Error('Patient profile not found');
+      const user = await authRepository.findUserById(userId);
+      if (!user || user.role !== 'patient') {
+        throw new Error('Patient profile not found or user is not a patient');
+      }
+
+      // Create profile with default name
+      profile = await patientRepository.createProfile({
+        userId,
+        fullName: `Patient_${userId.substring(0, 8)}`
+      });
     }
 
     return {

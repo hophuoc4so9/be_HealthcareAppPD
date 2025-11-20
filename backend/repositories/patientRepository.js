@@ -12,6 +12,9 @@ class PatientRepository {
   async createProfile(profileData) {
     const { userId, fullName, dateOfBirth, sex, phoneNumber, address } = profileData;
     
+    // Ensure full_name has a value (required by database)
+    const name = fullName || `Patient_${userId.substring(0, 8)}`;
+    
     const query = `
       INSERT INTO patient_profiles 
         (user_id, full_name, date_of_birth, sex, phone_number, address)
@@ -20,7 +23,7 @@ class PatientRepository {
     `;
     
     const result = await pool.query(query, [
-      userId, fullName, dateOfBirth, sex, phoneNumber, address
+      userId, name, dateOfBirth, sex, phoneNumber, address
     ]);
     
     return result.rows[0];
