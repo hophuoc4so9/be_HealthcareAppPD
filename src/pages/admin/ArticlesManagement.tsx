@@ -30,7 +30,7 @@ export default function ArticlesManagement() {
     setLoading(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('https://be-healthcareapppd.onrender.com/api/api/articles', {
+      const response = await fetch('https://be-healthcareapppd.onrender.com/api/articles', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
