@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { convertKeysToCamel, normalizeToSnake } = require('../utils/fieldConverter');
 
 class AppointmentRepository {
   // Doctor availability
@@ -10,7 +11,7 @@ class AppointmentRepository {
     `;
     
     const result = await pool.query(query, [doctorUserId, startTime, endTime]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   async getAvailabilityByDoctorId(doctorUserId) {
@@ -21,7 +22,7 @@ class AppointmentRepository {
     `;
     
     const result = await pool.query(query, [doctorUserId]);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   async deleteAvailability(id, doctorUserId) {
@@ -36,7 +37,9 @@ class AppointmentRepository {
 
   // Appointments
   async createAppointment(appointmentData) {
-    const { patientUserId, doctorUserId, availabilitySlotId, patientNotes } = appointmentData;
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(appointmentData);
+    const { patient_user_id, doctor_user_id, availability_slot_id, patient_notes } = normalized;
     
     const query = `
       INSERT INTO appointments (patient_user_id, doctor_user_id, availability_slot_id, patient_notes)
@@ -44,8 +47,8 @@ class AppointmentRepository {
       RETURNING *
     `;
     
-    const result = await pool.query(query, [patientUserId, doctorUserId, availabilitySlotId, patientNotes]);
-    return result.rows[0];
+    const result = await pool.query(query, [patient_user_id, doctor_user_id, availability_slot_id, patient_notes]);
+    return convertKeysToCamel(result.rows[0]);
   }
 
   async getAppointmentById(id) {
@@ -65,7 +68,7 @@ class AppointmentRepository {
     `;
     
     const result = await pool.query(query, [id]);
-    return result.rows[0] || null;
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
   }
 
   async getAppointmentsByPatient(patientUserId, status = null) {
@@ -92,7 +95,7 @@ class AppointmentRepository {
     query += ` ORDER BY da.start_time DESC`;
     
     const result = await pool.query(query, params);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   async getAppointmentsByDoctor(doctorUserId, status = null) {
@@ -118,7 +121,7 @@ class AppointmentRepository {
     query += ` ORDER BY da.start_time DESC`;
     
     const result = await pool.query(query, params);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   async updateAppointmentStatus(id, status) {
@@ -130,7 +133,7 @@ class AppointmentRepository {
     `;
     
     const result = await pool.query(query, [status, id]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   async cancelAppointment(id) {
@@ -159,7 +162,7 @@ class AppointmentRepository {
       }
       
       await client.query('COMMIT');
-      return updateAppt.rows[0];
+      return convertKeysToCamel(updateAppt.rows[0]);
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -177,7 +180,7 @@ class AppointmentRepository {
     `;
     
     const result = await pool.query(query, [slotId]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 }
 

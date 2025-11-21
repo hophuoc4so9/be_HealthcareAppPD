@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { convertKeysToCamel, normalizeToSnake } = require('../utils/fieldConverter');
 
 /**
  * Repository for patient profile operations
@@ -48,7 +49,7 @@ class PatientRepository {
     `;
     
     const result = await pool.query(query, [userId]);
-    return result.rows[0] || null;
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
   }
 
   /**
@@ -134,7 +135,9 @@ class PatientRepository {
    * @returns {Promise<Object>}
    */
   async addVitals(vitalsData) {
-    const { patientUserId, heightCm, weightKg, bmi } = vitalsData;
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(vitalsData);
+    const { patient_user_id, height_cm, weight_kg, bmi } = normalized;
     
     const query = `
       INSERT INTO patient_vitals 
@@ -143,8 +146,8 @@ class PatientRepository {
       RETURNING *
     `;
     
-    const result = await pool.query(query, [patientUserId, heightCm, weightKg, bmi]);
-    return result.rows[0];
+    const result = await pool.query(query, [patient_user_id, height_cm, weight_kg, bmi]);
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -162,7 +165,7 @@ class PatientRepository {
     `;
     
     const result = await pool.query(query, [patientUserId, limit]);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   /**
@@ -179,7 +182,7 @@ class PatientRepository {
     `;
     
     const result = await pool.query(query, [patientUserId]);
-    return result.rows[0] || null;
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
   }
 
   /**
@@ -206,7 +209,9 @@ class PatientRepository {
    * @returns {Promise<Object>}
    */
   async addMetrics(metricsData) {
-    const { patientUserId, metricType, value, startTime, endTime, source, metadata } = metricsData;
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(metricsData);
+    const { patient_user_id, metric_type, value, start_time, end_time, source, metadata } = normalized;
     
     const query = `
       INSERT INTO patient_metrics 
@@ -216,10 +221,10 @@ class PatientRepository {
     `;
     
     const result = await pool.query(query, [
-      patientUserId, metricType, value, startTime, endTime, source, metadata
+      patient_user_id, metric_type, value, start_time, end_time, source, metadata
     ]);
     
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -241,7 +246,7 @@ class PatientRepository {
     `;
     
     const result = await pool.query(query, [patientUserId, metricType, startDate, endDate]);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   /**
@@ -270,7 +275,7 @@ class PatientRepository {
     `;
     
     const result = await pool.query(query, [patientUserId, metricType, startDate, endDate]);
-    return result.rows[0] || null;
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
   }
 
   /**

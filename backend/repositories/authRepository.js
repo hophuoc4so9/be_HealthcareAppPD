@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { convertKeysToCamel } = require('../utils/fieldConverter');
 
 /**
  * Repository for authentication operations
@@ -17,7 +18,7 @@ class AuthRepository {
     `;
     
     const result = await pool.query(query, [email]);
-    return result.rows[0] || null;
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
   }
 
   /**
@@ -27,13 +28,13 @@ class AuthRepository {
    */
   async findUserById(userId) {
     const query = `
-      SELECT id, email, role, is_active, is_banned, created_at, updated_at
+      SELECT id, email, role, is_active, is_banned, created_at
       FROM users
       WHERE id = $1
     `;
     
     const result = await pool.query(query, [userId]);
-    return result.rows[0] || null;
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
   }
 
   /**
@@ -49,7 +50,7 @@ class AuthRepository {
     `;
     
     const result = await pool.query(query, [email, hashedPassword, role]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -63,11 +64,11 @@ class AuthRepository {
       UPDATE users
       SET hashed_password = $1, updated_at = NOW()
       WHERE id = $2
-      RETURNING id, email, role
+      RETURNING id, email, role, updated_at
     `;
     
     const result = await pool.query(query, [hashedPassword, userId]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -81,11 +82,11 @@ class AuthRepository {
       UPDATE users
       SET is_active = $1, updated_at = NOW()
       WHERE id = $2
-      RETURNING id, email, role, is_active
+      RETURNING id, email, role, is_active, updated_at
     `;
     
     const result = await pool.query(query, [isActive, userId]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -99,11 +100,11 @@ class AuthRepository {
       UPDATE users
       SET is_banned = $1, updated_at = NOW()
       WHERE id = $2
-      RETURNING id, email, role, is_banned
+      RETURNING id, email, role, is_banned, updated_at
     `;
     
     const result = await pool.query(query, [isBanned, userId]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**

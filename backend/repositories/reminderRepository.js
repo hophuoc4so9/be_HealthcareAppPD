@@ -1,8 +1,11 @@
 const pool = require('../db');
+const { convertKeysToCamel, normalizeToSnake } = require('../utils/fieldConverter');
 
 class ReminderRepository {
   async createReminder(reminderData) {
-    const { patientUserId, title, description, reminderType, cronExpression, oneTimeAt, timezoneName } = reminderData;
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(reminderData);
+    const { patient_user_id, title, description, reminder_type, cron_expression, one_time_at, timezone_name } = normalized;
     
     const query = `
       INSERT INTO reminders 
@@ -12,10 +15,10 @@ class ReminderRepository {
     `;
     
     const result = await pool.query(query, [
-      patientUserId, title, description, reminderType, cronExpression, oneTimeAt, timezoneName
+      patient_user_id, title, description, reminder_type, cron_expression, one_time_at, timezone_name
     ]);
     
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   async getRemindersByUserId(userId) {
@@ -26,23 +29,26 @@ class ReminderRepository {
     `;
     
     const result = await pool.query(query, [userId]);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   async getReminderById(id) {
     const query = 'SELECT * FROM reminders WHERE id = $1';
     const result = await pool.query(query, [id]);
-    return result.rows[0] || null;
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
   }
 
   async updateReminder(id, updates) {
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(updates);
+    
     const fields = [];
     const values = [];
     let paramCount = 1;
 
-    Object.keys(updates).forEach(key => {
+    Object.keys(normalized).forEach(key => {
       fields.push(`${key} = $${paramCount++}`);
-      values.push(updates[key]);
+      values.push(normalized[key]);
     });
 
     values.push(id);
@@ -55,7 +61,7 @@ class ReminderRepository {
     `;
 
     const result = await pool.query(query, values);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   async toggleActive(id, isActive) {
@@ -67,7 +73,7 @@ class ReminderRepository {
     `;
     
     const result = await pool.query(query, [isActive, id]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   async deleteReminder(id) {

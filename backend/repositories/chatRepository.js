@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { convertKeysToCamel, normalizeToSnake } = require('../utils/fieldConverter');
 
 class ChatRepository {
   async createConversation(patientUserId, doctorUserId) {
@@ -11,7 +12,7 @@ class ChatRepository {
     `;
     
     const result = await pool.query(query, [patientUserId, doctorUserId]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   async getConversationsByUserId(userId, role) {
@@ -32,7 +33,7 @@ class ChatRepository {
     `;
     
     const result = await pool.query(query, [userId]);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   async getMessagesByConversationId(conversationId, limit = 50) {
@@ -49,7 +50,7 @@ class ChatRepository {
     `;
     
     const result = await pool.query(query, [conversationId, limit]);
-    return result.rows.reverse();
+    return result.rows.reverse().map(row => convertKeysToCamel(row));
   }
 
   async sendMessage(conversationId, senderUserId, messageContent) {
@@ -60,7 +61,7 @@ class ChatRepository {
     `;
     
     const result = await pool.query(query, [conversationId, senderUserId, messageContent]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   async markAsRead(messageId) {
@@ -72,7 +73,7 @@ class ChatRepository {
     `;
     
     const result = await pool.query(query, [messageId]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 }
 

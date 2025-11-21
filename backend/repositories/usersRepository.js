@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { convertKeysToCamel, normalizeToSnake } = require('../utils/fieldConverter');
 
 /**
  * Repository for users management operations
@@ -64,7 +65,7 @@ class UsersRepository {
     `;
     
     const result = await pool.query(query, [userId]);
-    return result.rows[0] || null;
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
   }
 
   /**
@@ -128,11 +129,11 @@ class UsersRepository {
       UPDATE users
       SET is_active = $1, updated_at = NOW()
       WHERE id = $2
-      RETURNING id, email, role, is_active
+      RETURNING id, email, role, is_active, updated_at
     `;
     
     const result = await pool.query(query, [isActive, userId]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -146,11 +147,11 @@ class UsersRepository {
       UPDATE users
       SET is_banned = $1, updated_at = NOW()
       WHERE id = $2
-      RETURNING id, email, role, is_banned
+      RETURNING id, email, role, is_banned, updated_at
     `;
     
     const result = await pool.query(query, [isBanned, userId]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -169,7 +170,7 @@ class UsersRepository {
     `;
     
     const result = await pool.query(query, [`%${searchTerm}%`, limit]);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   /**
@@ -189,7 +190,7 @@ class UsersRepository {
     `;
     
     const result = await pool.query(query);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 }
 

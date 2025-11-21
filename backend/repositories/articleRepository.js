@@ -1,18 +1,27 @@
 const pool = require('../db');
+const { convertKeysToCamel, normalizeToSnake } = require('../utils/fieldConverter');
 
 class ArticleRepository {
   // Helper method to map database fields to API response
   mapArticleFields(article) {
     if (!article) return null;
-    return {
-      ...article,
-      content: article.content_body,
-      external_url: article.external_url
-    };
+    // Convert all fields to camelCase
+    const camelArticle = convertKeysToCamel(article);
+    // Map content_body to content for backward compatibility
+    if (camelArticle.contentBody !== undefined) {
+      camelArticle.content = camelArticle.contentBody;
+    }
+    // Map external_url to externalUrl for backward compatibility
+    if (camelArticle.externalUrl !== undefined) {
+      camelArticle.external_url = camelArticle.externalUrl;
+    }
+    return camelArticle;
   }
 
   async createArticle(articleData) {
-    const { authorAdminId, title, slug, contentBody, externalUrl, featuredImageUrl } = articleData;
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(articleData);
+    const { author_admin_id, title, slug, content_body, external_url, featured_image_url } = normalized;
     
     const query = `
       INSERT INTO articles (author_admin_id, title, slug, content_body, external_url, featured_image_url)
@@ -20,7 +29,7 @@ class ArticleRepository {
       RETURNING *
     `;
     
-    const result = await pool.query(query, [authorAdminId, title, slug, contentBody, externalUrl, featuredImageUrl]);
+    const result = await pool.query(query, [author_admin_id, title, slug, content_body, external_url, featured_image_url]);
     return this.mapArticleFields(result.rows[0]);
   }
 
@@ -78,13 +87,16 @@ class ArticleRepository {
   }
 
   async updateArticle(id, updates) {
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(updates);
+    
     const fields = [];
     const values = [];
     let paramCount = 1;
 
-    Object.keys(updates).forEach(key => {
+    Object.keys(normalized).forEach(key => {
       fields.push(`${key} = $${paramCount++}`);
-      values.push(updates[key]);
+      values.push(normalized[key]);
     });
 
     fields.push('updated_at = NOW()');

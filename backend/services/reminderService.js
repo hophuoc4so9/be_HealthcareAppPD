@@ -3,7 +3,9 @@ const reminderRepository = require('../repositories/reminderRepository');
 class ReminderService {
   async createReminder(userId, reminderData) {
     const validTypes = ['medication', 'sleep', 'appointment', 'general'];
-    if (!validTypes.includes(reminderData.reminderType)) {
+    // Check both camelCase and snake_case
+    const reminderType = reminderData.reminderType || reminderData.reminder_type;
+    if (!validTypes.includes(reminderType)) {
       throw new Error('Invalid reminder type');
     }
 
@@ -31,7 +33,8 @@ class ReminderService {
   async updateReminder(id, userId, updates) {
     const reminder = await reminderRepository.getReminderById(id);
     if (!reminder) throw new Error('Reminder not found');
-    if (reminder.patient_user_id !== userId) throw new Error('Unauthorized');
+    // Now reminder is in camelCase, so check patientUserId instead of patient_user_id
+    if (reminder.patientUserId !== userId) throw new Error('Unauthorized');
 
     const updated = await reminderRepository.updateReminder(id, updates);
 
@@ -45,7 +48,8 @@ class ReminderService {
   async toggleActive(id, userId, isActive) {
     const reminder = await reminderRepository.getReminderById(id);
     if (!reminder) throw new Error('Reminder not found');
-    if (reminder.patient_user_id !== userId) throw new Error('Unauthorized');
+    // Now reminder is in camelCase, so check patientUserId instead of patient_user_id
+    if (reminder.patientUserId !== userId) throw new Error('Unauthorized');
 
     const updated = await reminderRepository.toggleActive(id, isActive);
 
@@ -59,7 +63,8 @@ class ReminderService {
   async deleteReminder(id, userId) {
     const reminder = await reminderRepository.getReminderById(id);
     if (!reminder) throw new Error('Reminder not found');
-    if (reminder.patient_user_id !== userId) throw new Error('Unauthorized');
+    // Now reminder is in camelCase, so check patientUserId instead of patient_user_id
+    if (reminder.patientUserId !== userId) throw new Error('Unauthorized');
 
     await reminderRepository.deleteReminder(id);
 

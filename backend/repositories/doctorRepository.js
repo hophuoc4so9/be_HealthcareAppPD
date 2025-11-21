@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { convertKeysToCamel, normalizeToSnake } = require('../utils/fieldConverter');
 
 /**
  * Repository for doctor profile operations
@@ -8,7 +9,9 @@ class DoctorRepository {
    * Tạo doctor profile
    */
   async createProfile(profileData) {
-    const { userId, fullName, specialization, medicalLicenseId, clinicAddress, bio } = profileData;
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(profileData);
+    const { user_id, full_name, specialization, medical_license_id, clinic_address, bio } = normalized;
     
     const query = `
       INSERT INTO doctor_profiles 
@@ -18,10 +21,10 @@ class DoctorRepository {
     `;
     
     const result = await pool.query(query, [
-      userId, fullName, specialization, medicalLicenseId, clinicAddress, bio
+      user_id, full_name, specialization, medical_license_id, clinic_address, bio
     ]);
     
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -41,41 +44,28 @@ class DoctorRepository {
     `;
     
     const result = await pool.query(query, [userId]);
-    return result.rows[0] || null;
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
   }
 
   /**
    * Cập nhật doctor profile
    */
   async updateProfile(userId, updates) {
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(updates);
+    
     const fields = [];
     const values = [];
     let paramCount = 1;
 
-    if (updates.fullName) {
-      fields.push(`full_name = $${paramCount++}`);
-      values.push(updates.fullName);
-    }
-
-    if (updates.specialization) {
-      fields.push(`specialization = $${paramCount++}`);
-      values.push(updates.specialization);
-    }
-
-    if (updates.medicalLicenseId !== undefined) {
-      fields.push(`medical_license_id = $${paramCount++}`);
-      values.push(updates.medicalLicenseId);
-    }
-
-    if (updates.clinicAddress !== undefined) {
-      fields.push(`clinic_address = $${paramCount++}`);
-      values.push(updates.clinicAddress);
-    }
-
-    if (updates.bio !== undefined) {
-      fields.push(`bio = $${paramCount++}`);
-      values.push(updates.bio);
-    }
+    const allowedFields = ['full_name', 'specialization', 'medical_license_id', 'clinic_address', 'bio'];
+    
+    Object.keys(normalized).forEach(key => {
+      if (allowedFields.includes(key)) {
+        fields.push(`${key} = $${paramCount++}`);
+        values.push(normalized[key]);
+      }
+    });
 
     if (fields.length === 0) {
       throw new Error('No fields to update');
@@ -91,7 +81,7 @@ class DoctorRepository {
     `;
 
     const result = await pool.query(query, values);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -106,7 +96,7 @@ class DoctorRepository {
     `;
     
     const result = await pool.query(query, [status, adminNotes, userId]);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -136,7 +126,7 @@ class DoctorRepository {
     }
     
     const result = await pool.query(query, params);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   /**
@@ -172,7 +162,7 @@ class DoctorRepository {
     `;
     
     const result = await pool.query(query, [`%${specialization}%`, limit]);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   /**

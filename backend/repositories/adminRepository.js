@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { convertKeysToCamel } = require('../utils/fieldConverter');
 
 class AdminRepository {
   async getDashboardStats() {
@@ -13,7 +14,7 @@ class AdminRepository {
     `;
     
     const result = await pool.query(query);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   async getRecentUsers(limit = 10) {
@@ -25,7 +26,7 @@ class AdminRepository {
     `;
     
     const result = await pool.query(query, [limit]);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   async getRecentAppointments(limit = 10) {
@@ -47,7 +48,7 @@ class AdminRepository {
     `;
     
     const result = await pool.query(query, [limit]);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   async getPendingDoctorVerifications() {
@@ -63,7 +64,7 @@ class AdminRepository {
     `;
     
     const result = await pool.query(query);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 
   async getMonthlyStats() {
@@ -79,7 +80,7 @@ class AdminRepository {
     `;
     
     const result = await pool.query(query);
-    return result.rows;
+    return result.rows.map(row => convertKeysToCamel(row));
   }
 }
 
