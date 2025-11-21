@@ -5,7 +5,7 @@ API để quản lý database schema cho ứng dụng PD Health.
 ## 🔧 Base URL
 
 ```
-http://localhost:5000/api/database
+https://be-healthcareapppd.onrender.com/api/database
 ```
 
 ## 📋 API Endpoints
@@ -422,31 +422,31 @@ Tất cả errors đều được xử lý thống nhất:
 
 ```bash
 # Kiểm tra kết nối
-curl http://localhost:5000/api/database/connection
+curl https://be-healthcareapppd.onrender.com/api/database/connection
 
 # Kiểm tra trạng thái
-curl http://localhost:5000/api/database/status
+curl https://be-healthcareapppd.onrender.com/api/database/status
 
 # Khởi tạo schema
-curl -X POST http://localhost:5000/api/database/initialize
+curl -X POST https://be-healthcareapppd.onrender.com/api/database/initialize
 
 # Khởi tạo với force
-curl -X POST "http://localhost:5000/api/database/initialize?force=true"
+curl -X POST "https://be-healthcareapppd.onrender.com/api/database/initialize?force=true"
 
 # Lấy danh sách bảng
-curl http://localhost:5000/api/database/tables
+curl https://be-healthcareapppd.onrender.com/api/database/tables
 
 # Lấy thông tin bảng users
-curl http://localhost:5000/api/database/tables/users
+curl https://be-healthcareapppd.onrender.com/api/database/tables/users
 
 # Lấy ENUM types
-curl http://localhost:5000/api/database/enums
+curl https://be-healthcareapppd.onrender.com/api/database/enums
 
 # Lấy thống kê
-curl http://localhost:5000/api/database/stats
+curl https://be-healthcareapppd.onrender.com/api/database/stats
 
 # Reset database (dev only)
-curl -X POST http://localhost:5000/api/database/reset \
+curl -X POST https://be-healthcareapppd.onrender.com/api/database/reset \
   -H "Content-Type: application/json" \
   -d '{"confirm": "RESET_DATABASE"}'
 ```

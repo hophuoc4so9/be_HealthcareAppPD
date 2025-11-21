@@ -24,7 +24,7 @@ export default function DoctorVerification() {
     setLoading(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:5000/api/doctors?status=pending', {
+      const response = await fetch('https://be-healthcareapppd.onrender.com/api/doctors?status=pending', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -39,7 +39,7 @@ export default function DoctorVerification() {
   const handleVerify = async (userId: string, status: string) => {
     try {
       const token = localStorage.getItem('adminToken');
-      await fetch(`http://localhost:5000/api/doctors/${userId}/verification`, {
+      await fetch(`https://be-healthcareapppd.onrender.com/api/doctors/${userId}/verification`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

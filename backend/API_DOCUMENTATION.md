@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-http://localhost:5000/api/facilities
+https://be-healthcareapppd.onrender.com/api/facilities
 ```
 
 ## Endpoints

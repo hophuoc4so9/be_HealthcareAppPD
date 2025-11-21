@@ -27,7 +27,7 @@ export default function UsersManagement() {
     setLoading(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch('https://be-healthcareapppd.onrender.com/api/users', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -42,7 +42,7 @@ export default function UsersManagement() {
   const handleBanUnban = async (userId: string, currentStatus: boolean) => {
     try {
       const token = localStorage.getItem('adminToken');
-      await fetch(`http://localhost:5000/api/users/${userId}/${currentStatus ? 'unban' : 'ban'}`, {
+      await fetch(`https://be-healthcareapppd.onrender.com/api/users/${userId}/${currentStatus ? 'unban' : 'ban'}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -64,7 +64,7 @@ export default function UsersManagement() {
     
     try {
       const token = localStorage.getItem('adminToken');
-      await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+      await fetch(`https://be-healthcareapppd.onrender.com/api/users/${selectedUser.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -30,7 +30,7 @@ export default function ArticlesManagement() {
     setLoading(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:5000/api/articles', {
+      const response = await fetch('https://be-healthcareapppd.onrender.com/api/api/articles', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -46,8 +46,8 @@ export default function ArticlesManagement() {
     try {
       const token = localStorage.getItem('adminToken');
       const url = editingArticle 
-        ? `http://localhost:5000/api/articles/${editingArticle.id}`
-        : 'http://localhost:5000/api/articles';
+        ? `https://be-healthcareapppd.onrender.com/api/articles/${editingArticle.id}`
+        : 'https://be-healthcareapppd.onrender.com/api/articles';
       
       await fetch(url, {
         method: editingArticle ? 'PUT' : 'POST',
@@ -89,7 +89,7 @@ export default function ArticlesManagement() {
   const handlePublish = async (id: string) => {
     try {
       const token = localStorage.getItem('adminToken');
-      await fetch(`http://localhost:5000/api/articles/${id}`, {
+      await fetch(`https://be-healthcareapppd.onrender.com/api/articles/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -107,7 +107,7 @@ export default function ArticlesManagement() {
   const handleDelete = async (id: string) => {
     try {
       const token = localStorage.getItem('adminToken');
-      await fetch(`http://localhost:5000/api/articles/${id}`, {
+      await fetch(`https://be-healthcareapppd.onrender.com/api/articles/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
