@@ -1,4 +1,5 @@
 const pool = require("../db");
+const { convertKeysToCamel, normalizeToSnake } = require('../utils/fieldConverter');
 
 /**
  * Database helper for healthcare facilities with geographic queries
@@ -80,9 +81,12 @@ class FacilityRepository {
    * Create new facility
    */
   static async create(facilityData) {
-    const fields = Object.keys(facilityData).join(', ');
-    const placeholders = Object.keys(facilityData).map((_, index) => `$${index + 1}`).join(', ');
-    const values = Object.values(facilityData);
+    // Normalize input to snake_case
+    const normalized = normalizeToSnake(facilityData);
+    
+    const fields = Object.keys(normalized).join(', ');
+    const placeholders = Object.keys(normalized).map((_, index) => `$${index + 1}`).join(', ');
+    const values = Object.values(normalized);
 
     const query = `
       INSERT INTO health_facilities_points (${fields})
@@ -91,7 +95,7 @@ class FacilityRepository {
     `;
 
     const result = await pool.query(query, values);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**

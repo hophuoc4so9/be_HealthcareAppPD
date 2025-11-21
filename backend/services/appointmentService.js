@@ -81,7 +81,7 @@ class AppointmentService {
     if (!appointment) throw new Error('Appointment not found');
 
     // Only doctor can change status
-    if (role !== 'doctor' || appointment.doctor_user_id !== userId) {
+    if (role !== 'doctor' || appointment.doctorUserId !== userId) {
       throw new Error('Unauthorized');
     }
 
@@ -104,8 +104,8 @@ class AppointmentService {
     if (!appointment) throw new Error('Appointment not found');
 
     // Patient or doctor can cancel
-    const canCancel = (role === 'patient' && appointment.patient_user_id === userId) ||
-                      (role === 'doctor' && appointment.doctor_user_id === userId);
+    const canCancel = (role === 'patient' && appointment.patientUserId === userId) ||
+                      (role === 'doctor' && appointment.doctorUserId === userId);
 
     if (!canCancel) throw new Error('Unauthorized');
 

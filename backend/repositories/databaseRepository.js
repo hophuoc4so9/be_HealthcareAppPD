@@ -1,6 +1,7 @@
 const pool = require('../db');
 const fs = require('fs').promises;
 const path = require('path');
+const { convertKeysToCamel } = require('../utils/fieldConverter');
 
 /**
  * Repository for database schema management operations
@@ -415,7 +416,7 @@ class DatabaseRepository {
     `;
     
     const result = await pool.query(query);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 }
 

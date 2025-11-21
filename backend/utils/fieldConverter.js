@@ -28,13 +28,22 @@ function camelToSnake(str) {
 function convertKeysToCamel(obj) {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj !== 'object') return obj;
+  if (obj instanceof Date) return obj;
   if (Array.isArray(obj)) return obj.map(convertKeysToCamel);
 
   const converted = {};
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       const camelKey = snakeToCamel(key);
-      converted[camelKey] = convertKeysToCamel(obj[key]);
+      const value = obj[key];
+      // Only convert plain objects, not Date, null, or other special objects
+      if (value !== null && typeof value === 'object' && !(value instanceof Date) && !Array.isArray(value)) {
+        converted[camelKey] = convertKeysToCamel(value);
+      } else if (Array.isArray(value)) {
+        converted[camelKey] = value.map(convertKeysToCamel);
+      } else {
+        converted[camelKey] = value;
+      }
     }
   }
   return converted;
@@ -48,13 +57,22 @@ function convertKeysToCamel(obj) {
 function convertKeysToSnake(obj) {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj !== 'object') return obj;
+  if (obj instanceof Date) return obj;
   if (Array.isArray(obj)) return obj.map(convertKeysToSnake);
 
   const converted = {};
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       const snakeKey = camelToSnake(key);
-      converted[snakeKey] = convertKeysToSnake(obj[key]);
+      const value = obj[key];
+      // Only convert plain objects, not Date, null, or other special objects
+      if (value !== null && typeof value === 'object' && !(value instanceof Date) && !Array.isArray(value)) {
+        converted[snakeKey] = convertKeysToSnake(value);
+      } else if (Array.isArray(value)) {
+        converted[snakeKey] = value.map(convertKeysToSnake);
+      } else {
+        converted[snakeKey] = value;
+      }
     }
   }
   return converted;
@@ -69,6 +87,7 @@ function convertKeysToSnake(obj) {
 function normalizeToSnake(obj) {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj !== 'object') return obj;
+  if (obj instanceof Date) return obj;
   if (Array.isArray(obj)) return obj.map(normalizeToSnake);
 
   const normalized = {};
@@ -76,7 +95,15 @@ function normalizeToSnake(obj) {
     if (obj.hasOwnProperty(key)) {
       // Convert camelCase to snake_case
       const snakeKey = camelToSnake(key);
-      normalized[snakeKey] = normalizeToSnake(obj[key]);
+      const value = obj[key];
+      // Only convert plain objects, not Date, null, or other special objects
+      if (value !== null && typeof value === 'object' && !(value instanceof Date) && !Array.isArray(value)) {
+        normalized[snakeKey] = normalizeToSnake(value);
+      } else if (Array.isArray(value)) {
+        normalized[snakeKey] = value.map(normalizeToSnake);
+      } else {
+        normalized[snakeKey] = value;
+      }
     }
   }
   return normalized;

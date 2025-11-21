@@ -104,7 +104,7 @@ class UsersRepository {
     `;
 
     const result = await pool.query(query, values);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**

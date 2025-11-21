@@ -11,10 +11,12 @@ class PatientRepository {
    * @returns {Promise<Object>}
    */
   async createProfile(profileData) {
-    const { userId, fullName, dateOfBirth, sex, phoneNumber, address } = profileData;
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(profileData);
+    const { user_id, full_name, date_of_birth, sex, phone_number, address } = normalized;
     
     // Ensure full_name has a value (required by database)
-    const name = fullName || `Patient_${userId.substring(0, 8)}`;
+    const name = full_name || `Patient_${user_id.substring(0, 8)}`;
     
     const query = `
       INSERT INTO patient_profiles 
@@ -24,10 +26,10 @@ class PatientRepository {
     `;
     
     const result = await pool.query(query, [
-      userId, name, dateOfBirth, sex, phoneNumber, address
+      user_id, name, date_of_birth, sex, phone_number, address
     ]);
     
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**
@@ -59,34 +61,22 @@ class PatientRepository {
    * @returns {Promise<Object>}
    */
   async updateProfile(userId, updates) {
+    // Normalize input to snake_case (accepts both camelCase and snake_case)
+    const normalized = normalizeToSnake(updates);
+    
     const fields = [];
     const values = [];
     let paramCount = 1;
 
-    if (updates.fullName) {
-      fields.push(`full_name = $${paramCount++}`);
-      values.push(updates.fullName);
-    }
-
-    if (updates.dateOfBirth) {
-      fields.push(`date_of_birth = $${paramCount++}`);
-      values.push(updates.dateOfBirth);
-    }
-
-    if (updates.sex) {
-      fields.push(`sex = $${paramCount++}`);
-      values.push(updates.sex);
-    }
-
-    if (updates.phoneNumber !== undefined) {
-      fields.push(`phone_number = $${paramCount++}`);
-      values.push(updates.phoneNumber);
-    }
-
-    if (updates.address !== undefined) {
-      fields.push(`address = $${paramCount++}`);
-      values.push(updates.address);
-    }
+    // Only update fields that exist in the patient_profiles table
+    const allowedFields = ['full_name', 'date_of_birth', 'sex', 'phone_number', 'address'];
+    
+    Object.keys(normalized).forEach(key => {
+      if (allowedFields.includes(key)) {
+        fields.push(`${key} = $${paramCount++}`);
+        values.push(normalized[key]);
+      }
+    });
 
     if (fields.length === 0) {
       throw new Error('No fields to update');
@@ -96,13 +86,13 @@ class PatientRepository {
 
     const query = `
       UPDATE patient_profiles
-      SET ${fields.join(', ')}
+      SET ${fields.join(', ')}, updated_at = NOW()
       WHERE user_id = $${paramCount}
       RETURNING *
     `;
 
     const result = await pool.query(query, values);
-    return result.rows[0];
+    return convertKeysToCamel(result.rows[0]);
   }
 
   /**

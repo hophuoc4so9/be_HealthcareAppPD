@@ -7,13 +7,9 @@ class ArticleRepository {
     if (!article) return null;
     // Convert all fields to camelCase
     const camelArticle = convertKeysToCamel(article);
-    // Map content_body to content for backward compatibility
+    // Map contentBody to content for convenience
     if (camelArticle.contentBody !== undefined) {
       camelArticle.content = camelArticle.contentBody;
-    }
-    // Map external_url to externalUrl for backward compatibility
-    if (camelArticle.externalUrl !== undefined) {
-      camelArticle.external_url = camelArticle.externalUrl;
     }
     return camelArticle;
   }

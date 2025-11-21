@@ -54,7 +54,7 @@ class AuthService {
           id: user.id,
           email: user.email,
           role: user.role,
-          is_active: user.is_active
+          isActive: user.isActive
         },
         token
       }
@@ -80,17 +80,17 @@ class AuthService {
     }
 
     // Kiểm tra account bị banned
-    if (user.is_banned) {
+    if (user.isBanned) {
       throw new Error('Account has been banned. Please contact support');
     }
 
     // Kiểm tra account active
-    if (!user.is_active) {
+    if (!user.isActive) {
       throw new Error('Account is not active. Please verify your email');
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.hashed_password);
+    const isValidPassword = await bcrypt.compare(password, user.hashedPassword);
     if (!isValidPassword) {
       throw new Error('Invalid email or password');
     }
@@ -106,7 +106,7 @@ class AuthService {
           id: user.id,
           email: user.email,
           role: user.role,
-          is_active: user.is_active
+          isActive: user.isActive
         },
         token
       }
@@ -140,7 +140,7 @@ class AuthService {
     const userWithPassword = await authRepository.findUserByEmail(user.email);
     
     // Verify current password
-    const isValidPassword = await bcrypt.compare(currentPassword, userWithPassword.hashed_password);
+    const isValidPassword = await bcrypt.compare(currentPassword, userWithPassword.hashedPassword);
     if (!isValidPassword) {
       throw new Error('Current password is incorrect');
     }
@@ -205,9 +205,9 @@ class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
-        is_active: user.is_active,
-        is_banned: user.is_banned,
-        created_at: user.created_at
+        isActive: user.isActive,
+        isBanned: user.isBanned,
+        createdAt: user.createdAt
       }
     };
   }

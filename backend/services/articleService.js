@@ -18,7 +18,7 @@ class ArticleService {
       title: articleData.title,
       slug,
       contentBody: articleData.content || null,
-      externalUrl: articleData.external_url || null,
+      externalUrl: articleData.externalUrl || null,
       featuredImageUrl: null
     });
 
@@ -80,6 +80,7 @@ class ArticleService {
     const article = await articleRepository.getArticleById(id);
     if (!article) throw new Error('Article not found');
 
+    // Pass updates directly - repository will handle camelCase to snake_case conversion
     const cleanUpdates = {};
     
     if (updates.title) {
@@ -88,11 +89,11 @@ class ArticleService {
     }
     
     if (updates.content !== undefined) {
-      cleanUpdates.content_body = updates.content;
+      cleanUpdates.contentBody = updates.content;
     }
     
-    if (updates.external_url !== undefined) {
-      cleanUpdates.external_url = updates.external_url;
+    if (updates.externalUrl !== undefined) {
+      cleanUpdates.externalUrl = updates.externalUrl;
     }
     
     if (updates.status) {
