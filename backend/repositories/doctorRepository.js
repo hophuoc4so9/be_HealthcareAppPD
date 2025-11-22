@@ -264,9 +264,8 @@ class DoctorRepository {
       LEFT JOIN appointments a ON u.id = a.patient_user_id AND a.doctor_user_id = $1
       LEFT JOIN doctor_availability s ON a.availability_slot_id = s.id
       WHERE u.id = $2
-      GROUP BY u.id, u.email, u.created_at, pp.id, pp.user_id, pp.full_name, pp.date_of_birth, 
-               pp.phone_number, pp.sex, pp.address, pp.emergency_contact, pp.blood_type, 
-               pp.allergies, pp.current_medications, pp.medical_history, pp.created_at, pp.updated_at
+      GROUP BY u.id, u.email, u.created_at, pp.user_id, pp.full_name, pp.date_of_birth, 
+               pp.phone_number, pp.sex, pp.address
       HAVING COUNT(a.id) > 0
     `;
     
