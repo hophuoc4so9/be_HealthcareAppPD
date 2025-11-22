@@ -86,7 +86,7 @@ class PatientRepository {
 
     const query = `
       UPDATE patient_profiles
-      SET ${fields.join(', ')}, updated_at = NOW()
+      SET ${fields.join(', ')}
       WHERE user_id = $${paramCount}
       RETURNING *
     `;
