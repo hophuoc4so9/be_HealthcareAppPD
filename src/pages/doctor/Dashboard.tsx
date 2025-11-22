@@ -118,8 +118,12 @@ export default function DoctorDashboard() {
       }
 
       const response: any = await apiService.getMyConversations(token);
-      if (response?.success && Array.isArray(response?.data)) {
-        setChatConversations(response.data);
+      console.log('Conversations response:', response);
+      
+      if (response?.success) {
+        // API returns { success: true, data: { conversations: [...], count: N } }
+        const conversations = response.data?.conversations || response.data || [];
+        setChatConversations(Array.isArray(conversations) ? conversations : []);
       } else {
         setChatConversations([]);
       }
@@ -141,8 +145,12 @@ export default function DoctorDashboard() {
       }
 
       const response: any = await apiService.getConversationMessages(token, conversationId);
-      if (response?.success && Array.isArray(response?.data)) {
-        setChatMessages(response.data);
+      console.log('Messages response:', response);
+      
+      if (response?.success) {
+        // API returns { success: true, data: { messages: [...], count: N } }
+        const messages = response.data?.messages || response.data || [];
+        setChatMessages(Array.isArray(messages) ? messages : []);
       } else {
         setChatMessages([]);
       }
@@ -479,28 +487,47 @@ export default function DoctorDashboard() {
 
   const renderChat = () => {
     const handleSendMessage = async () => {
-      if (!messageText.trim() || !selectedConversation) return;
+      const trimmedMessage = messageText.trim();
+      
+      if (!trimmedMessage) {
+        message.warning('Vui lòng nhập nội dung tin nhắn');
+        return;
+      }
+      
+      if (!selectedConversation) {
+        message.warning('Vui lòng chọn cuộc trò chuyện');
+        return;
+      }
       
       try {
         const token = localStorage.getItem('doctorToken');
-        if (!token) return;
+        if (!token) {
+          message.error('Phiên đăng nhập hết hạn');
+          return;
+        }
 
-        await apiService.sendMessage(token, selectedConversation, messageText.trim());
-        setMessageText('');
+        const response = await apiService.sendMessage(token, selectedConversation, trimmedMessage);
         
-        // Reload messages after sending
-        await loadChatMessages(selectedConversation);
-        message.success('Đã gửi tin nhắn');
-      } catch (error) {
+        if (response && (response as any).success) {
+          setMessageText('');
+          // Reload messages after sending
+          await loadChatMessages(selectedConversation);
+          message.success('Đã gửi tin nhắn');
+        } else {
+          message.error('Không thể gửi tin nhắn');
+        }
+      } catch (error: any) {
         console.error('Error sending message:', error);
-        message.error('Gửi tin nhắn thất bại');
+        const errorMsg = error?.message || 'Gửi tin nhắn thất bại';
+        message.error(errorMsg);
       }
     };
 
     const renderConversationList = () => (
       <Card 
         title="Tin nhắn" 
-        styles={{ body: { padding: 0, height: 'calc(100vh - 350px)', overflowY: 'auto' } }}
+        style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}
+        styles={{ body: { padding: 0, flex: 1, overflowY: 'auto' } }}
       >
         {loadingChat ? (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
@@ -554,13 +581,12 @@ export default function DoctorDashboard() {
     const renderChatWindow = () => {
       if (!selectedConversation) {
         return (
-          <Card style={{ height: 'calc(100vh - 350px)' }}>
+          <Card style={{ height: 'calc(100vh - 200px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ 
               display: 'flex', 
               flexDirection: 'column',
               alignItems: 'center', 
-              justifyContent: 'center', 
-              height: '100%' 
+              justifyContent: 'center'
             }}>
               <MessageOutlined style={{ fontSize: 64, color: '#ccc', marginBottom: 16 }} />
               <Title level={4}>Chọn một cuộc trò chuyện để bắt đầu</Title>
@@ -587,10 +613,11 @@ export default function DoctorDashboard() {
               </div>
             </Space>
           }
-          bodyStyle={{ padding: 0 }}
+          style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}
+          styles={{ body: { padding: 0, flex: 1, display: 'flex', flexDirection: 'column' } }}
         >
           <div style={{ 
-            height: 'calc(100vh - 500px)', 
+            flex: 1,
             overflowY: 'auto',
             padding: '16px',
             background: '#f5f5f5'

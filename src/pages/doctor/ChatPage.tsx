@@ -69,8 +69,12 @@ export default function ChatPage() {
       }
 
       const response: any = await (await import('../../services/apiService')).default.getMyConversations(token);
-      if (response?.success && Array.isArray(response?.data)) {
-        setConversations(response.data);
+      console.log('Conversations response:', response);
+      
+      if (response?.success) {
+        // API returns { success: true, data: { conversations: [...], count: N } }
+        const conversations = response.data?.conversations || response.data || [];
+        setConversations(Array.isArray(conversations) ? conversations : []);
       } else {
         setConversations([]);
       }
@@ -93,8 +97,12 @@ export default function ChatPage() {
       }
 
       const response: any = await (await import('../../services/apiService')).default.getConversationMessages(token, conversationId);
-      if (response?.success && Array.isArray(response?.data)) {
-        setMessages(response.data);
+      console.log('Messages response:', response);
+      
+      if (response?.success) {
+        // API returns { success: true, data: { messages: [...], count: N } }
+        const messages = response.data?.messages || response.data || [];
+        setMessages(Array.isArray(messages) ? messages : []);
       } else {
         setMessages([]);
       }
@@ -118,7 +126,7 @@ export default function ChatPage() {
       const response: any = await apiService.sendMessage(
         token, 
         selectedConversation, 
-        messageText
+        messageText.trim()
       );
       
       if (response?.success) {

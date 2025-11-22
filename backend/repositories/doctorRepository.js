@@ -228,7 +228,7 @@ class DoctorRepository {
         pp.full_name,
         pp.date_of_birth,
         pp.phone_number,
-        pp.gender,
+        pp.sex,
         COUNT(a.id) as total_appointments,
         MAX(s.start_time) as last_appointment_date
       FROM users u
@@ -236,7 +236,7 @@ class DoctorRepository {
       INNER JOIN appointments a ON u.id = a.patient_user_id
       LEFT JOIN doctor_availability s ON a.availability_slot_id = s.id
       WHERE a.doctor_user_id = $1
-      GROUP BY u.id, u.email, pp.full_name, pp.date_of_birth, pp.phone_number, pp.gender
+      GROUP BY u.id, u.email, pp.full_name, pp.date_of_birth, pp.phone_number, pp.sex
       ORDER BY MAX(s.start_time) DESC
       LIMIT $2
     `;
@@ -265,7 +265,7 @@ class DoctorRepository {
       LEFT JOIN doctor_availability s ON a.availability_slot_id = s.id
       WHERE u.id = $2
       GROUP BY u.id, u.email, u.created_at, pp.id, pp.user_id, pp.full_name, pp.date_of_birth, 
-               pp.phone_number, pp.gender, pp.address, pp.emergency_contact, pp.blood_type, 
+               pp.phone_number, pp.sex, pp.address, pp.emergency_contact, pp.blood_type, 
                pp.allergies, pp.current_medications, pp.medical_history, pp.created_at, pp.updated_at
       HAVING COUNT(a.id) > 0
     `;
