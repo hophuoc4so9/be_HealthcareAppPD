@@ -7,7 +7,6 @@ import {
   UserOutlined, SendOutlined, SearchOutlined, MessageOutlined 
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import apiService from '../../services/apiService';
 
 const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -81,13 +80,13 @@ export default function ChatPage() {
     }
   };
 
-  const loadMessages = async (conversationId: string) => {
+  const loadMessages = async (_conversationId: string) => {
     try {
       const token = localStorage.getItem('doctorToken');
       if (!token) return;
 
       // TODO: Implement API call when backend is ready
-      // const response = await apiService.getMessages(token, conversationId);
+      // const response = await apiService.getMessages(token, _conversationId);
       // setMessages(response.data || []);
       
       // Mock data for now

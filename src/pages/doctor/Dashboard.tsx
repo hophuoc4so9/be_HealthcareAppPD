@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layout, Menu, Avatar, Dropdown, Space, Typography, Card, Row, Col, Statistic, Table, Tag, Button, Tabs, Calendar, Badge, List, Input, message } from 'antd';
+import { Layout, Menu, Avatar, Dropdown, Space, Typography, Card, Row, Col, Statistic, Table, Tag, Button, Calendar, Badge, List, Input, message } from 'antd';
 import { 
   UserOutlined, LogoutOutlined, CalendarOutlined, TeamOutlined, 
   MessageOutlined, BarChartOutlined, DashboardOutlined,
-  ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined
+  ClockCircleOutlined, CheckCircleOutlined
 } from '@ant-design/icons';
 import type { MenuProps, BadgeProps } from 'antd';
 import type { Dayjs } from 'dayjs';
@@ -13,7 +13,6 @@ import apiService from '../../services/apiService';
 
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 const { Search } = Input;
 
 export default function DoctorDashboard() {
@@ -24,6 +23,12 @@ export default function DoctorDashboard() {
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedTab, setSelectedTab] = useState('overview');
   const [loading, setLoading] = useState(false);
+  
+  // Chat states
+  const [chatConversations] = useState<any[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [chatMessages] = useState<any[]>([]);
+  const [messageText, setMessageText] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('doctorToken');
@@ -36,6 +41,18 @@ export default function DoctorDashboard() {
     
     setUser(JSON.parse(userData));
     loadDashboardData();
+
+    // Listen for custom event to change tab
+    const handleSelectTab = (event: any) => {
+      if (event.detail) {
+        setSelectedTab(event.detail);
+      }
+    };
+    window.addEventListener('selectTab', handleSelectTab);
+
+    return () => {
+      window.removeEventListener('selectTab', handleSelectTab);
+    };
   }, [navigate]);
 
   const loadDashboardData = async () => {
@@ -359,7 +376,7 @@ export default function DoctorDashboard() {
               <Button 
                 type="primary" 
                 icon={<MessageOutlined />}
-                onClick={() => navigate('/doctor/chat')}
+                onClick={() => setSelectedTab('chat')}
               >
                 Nhắn tin
               </Button>
@@ -388,8 +405,186 @@ export default function DoctorDashboard() {
   );
 
   const renderChat = () => {
-    navigate('/doctor/chat');
-    return null;
+    const handleSendMessage = () => {
+      if (!messageText.trim()) return;
+      setMessageText('');
+      message.info('Chức năng chat đang được phát triển');
+    };
+
+    const renderConversationList = () => (
+      <Card 
+        title="Tin nhắn" 
+        bodyStyle={{ padding: 0, height: 'calc(100vh - 350px)', overflowY: 'auto' }}
+      >
+        {chatConversations.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <MessageOutlined style={{ fontSize: 48, color: '#ccc', marginBottom: 16 }} />
+            <Text type="secondary">Chưa có cuộc trò chuyện nào</Text>
+          </div>
+        ) : (
+          <List
+            dataSource={chatConversations}
+            renderItem={(conversation: any) => (
+              <List.Item
+                onClick={() => setSelectedConversation(conversation.id)}
+                style={{
+                  cursor: 'pointer',
+                  background: selectedConversation === conversation.id ? '#e6f7ff' : 'transparent',
+                  padding: '12px 16px'
+                }}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <Badge count={conversation.unreadCount || 0}>
+                      <Avatar icon={<UserOutlined />} size={48} />
+                    </Badge>
+                  }
+                  title={conversation.patientName}
+                  description={
+                    <div>
+                      <Text ellipsis style={{ width: 200, display: 'block' }}>
+                        {conversation.lastMessage || 'Chưa có tin nhắn'}
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {conversation.lastMessageTime 
+                          ? dayjs(conversation.lastMessageTime).format('HH:mm DD/MM/YYYY')
+                          : ''
+                        }
+                      </Text>
+                    </div>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        )}
+      </Card>
+    );
+
+    const renderChatWindow = () => {
+      if (!selectedConversation) {
+        return (
+          <Card style={{ height: 'calc(100vh - 350px)' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              height: '100%' 
+            }}>
+              <MessageOutlined style={{ fontSize: 64, color: '#ccc', marginBottom: 16 }} />
+              <Title level={4}>Chọn một cuộc trò chuyện để bắt đầu</Title>
+              <Text type="secondary">Chọn bệnh nhân từ danh sách bên trái</Text>
+            </div>
+          </Card>
+        );
+      }
+
+      const selectedConv = chatConversations.find((c: any) => c.id === selectedConversation);
+
+      return (
+        <Card 
+          title={
+            <Space>
+              <Avatar icon={<UserOutlined />} />
+              <div>
+                <div>{selectedConv?.patientName}</div>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {selectedConv?.patientEmail}
+                </Text>
+              </div>
+            </Space>
+          }
+          bodyStyle={{ padding: 0 }}
+        >
+          <div style={{ 
+            height: 'calc(100vh - 500px)', 
+            overflowY: 'auto',
+            padding: '16px',
+            background: '#f5f5f5'
+          }}>
+            {chatMessages.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <Text type="secondary">Chưa có tin nhắn nào</Text>
+              </div>
+            ) : (
+              chatMessages.map((msg: any) => {
+                const isMe = msg.senderUserId === user?.id;
+                return (
+                  <div
+                    key={msg.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: isMe ? 'flex-end' : 'flex-start',
+                      marginBottom: 12
+                    }}
+                  >
+                    <div
+                      style={{
+                        maxWidth: '60%',
+                        padding: '8px 12px',
+                        borderRadius: 8,
+                        background: isMe ? '#1890ff' : '#fff',
+                        color: isMe ? '#fff' : '#000'
+                      }}
+                    >
+                      <div>{msg.messageContent}</div>
+                      <Text 
+                        style={{ 
+                          fontSize: 11, 
+                          color: isMe ? 'rgba(255,255,255,0.7)' : '#999',
+                          display: 'block',
+                          textAlign: 'right',
+                          marginTop: 4
+                        }}
+                      >
+                        {dayjs(msg.createdAt).format('HH:mm')}
+                      </Text>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div style={{ padding: '16px', background: '#fff', borderTop: '1px solid #f0f0f0' }}>
+            <Space.Compact style={{ width: '100%' }}>
+              <Input.TextArea
+                placeholder="Nhập tin nhắn..."
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onPressEnter={(e) => {
+                  if (!e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                autoSize={{ minRows: 1, maxRows: 3 }}
+                style={{ flex: 1 }}
+              />
+              <Button 
+                type="primary" 
+                onClick={handleSendMessage}
+                disabled={!messageText.trim()}
+              >
+                Gửi
+              </Button>
+            </Space.Compact>
+          </div>
+        </Card>
+      );
+    };
+
+    return (
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={8}>
+          {renderConversationList()}
+        </Col>
+        <Col xs={24} lg={16}>
+          {renderChatWindow()}
+        </Col>
+      </Row>
+    );
   };
 
   const renderMetrics = () => (

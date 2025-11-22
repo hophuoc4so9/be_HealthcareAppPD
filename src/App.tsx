@@ -11,7 +11,6 @@ import DoctorLogin from './pages/doctor/Login';
 import DoctorRegister from './pages/doctor/Register';
 import DoctorDashboard from './pages/doctor/Dashboard';
 import PatientDetail from './pages/doctor/PatientDetail';
-import ChatPage from './pages/doctor/ChatPage';
 import ScheduleManagement from './pages/doctor/ScheduleManagement';
 import './App.css';
 
@@ -39,7 +38,6 @@ function App() {
           <Route path="/doctor/register" element={<DoctorRegister />} />
           <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
           <Route path="/doctor/patients/:id" element={<PatientDetail />} />
-          <Route path="/doctor/chat" element={<ChatPage />} />
           <Route path="/doctor/schedule" element={<ScheduleManagement />} />
 
           {/* Default redirect */}

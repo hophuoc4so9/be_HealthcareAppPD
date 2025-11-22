@@ -35,6 +35,21 @@ class ApiService {
     return response.json();
   }
 
+  async post(endpoint: string, data: any): Promise<any> {
+    const response = await fetch(`${this.baseURL}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw { response: { data: error } };
+    }
+
+    return response.json();
+  }
+
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     

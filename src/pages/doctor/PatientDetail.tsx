@@ -21,7 +21,7 @@ export default function PatientDetail() {
   const [loading, setLoading] = useState(false);
   const [patient, setPatient] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
-  const [vitals, setVitals] = useState<any[]>([]);
+  const vitals: any[] = [];
 
   useEffect(() => {
     loadPatientData();
@@ -203,7 +203,14 @@ export default function PatientDetail() {
                   type="primary" 
                   icon={<MessageOutlined />} 
                   block
-                  onClick={() => message.info('Chức năng chat đang phát triển')}
+                  onClick={() => {
+                    navigate('/doctor/dashboard');
+                    // Set tab to chat after navigation
+                    setTimeout(() => {
+                      const event = new CustomEvent('selectTab', { detail: 'chat' });
+                      window.dispatchEvent(event);
+                    }, 100);
+                  }}
                 >
                   Gửi tin nhắn
                 </Button>

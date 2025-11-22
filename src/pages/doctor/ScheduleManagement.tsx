@@ -15,10 +15,8 @@ const { Content } = Layout;
 const { Title, Text } = Typography;
 
 export default function ScheduleManagement() {
-  const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
   const [showAddModal, setShowAddModal] = useState(false);
-  const [availabilitySlots, setAvailabilitySlots] = useState<any[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
@@ -28,7 +26,6 @@ export default function ScheduleManagement() {
   }, []);
 
   const loadData = async () => {
-    setLoading(true);
     try {
       const token = localStorage.getItem('doctorToken');
       if (!token) return;
@@ -39,17 +36,9 @@ export default function ScheduleManagement() {
         setAppointments((appointmentsRes as any).data || []);
       }
 
-      // Load availability
-      const availabilityRes = await apiService.getDoctorAvailability(token);
-      if ((availabilityRes as any).success) {
-        setAvailabilitySlots((availabilityRes as any).data || []);
-      }
-
     } catch (error) {
       console.error('Error loading schedule data:', error);
       message.error('Không thể tải dữ liệu lịch làm việc');
-    } finally {
-      setLoading(false);
     }
   };
 
