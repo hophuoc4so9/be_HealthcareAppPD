@@ -218,6 +218,165 @@ class ApiService {
       type: 'hospital',
     });
   }
+
+  // Doctor endpoints
+  async getDoctorProfile(token: string) {
+    return this.request('/doctors/profile', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async updateDoctorProfile(token: string, profileData: any) {
+    return this.request('/doctors/profile', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async getDoctorDashboardStats(token: string) {
+    return this.request('/doctors/dashboard/stats', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getDoctorPatients(token: string, limit = 20) {
+    return this.request(`/doctors/patients?limit=${limit}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getAllDoctors(params?: { page?: number; limit?: number; status?: string }) {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.append('page', params.page.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.status) searchParams.append('status', params.status);
+    
+    const queryString = searchParams.toString();
+    return this.request(`/doctors${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async searchDoctorsBySpecialization(specialization: string, limit = 20) {
+    return this.request(`/doctors/search?q=${encodeURIComponent(specialization)}&limit=${limit}`);
+  }
+
+  // Appointment endpoints
+  async getDoctorAppointments(token: string, status?: string) {
+    const queryString = status ? `?status=${status}` : '';
+    return this.request(`/appointments${queryString}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getAppointmentDetails(token: string, appointmentId: string) {
+    return this.request(`/appointments/${appointmentId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async updateAppointmentStatus(token: string, appointmentId: string, status: string) {
+    return this.request(`/appointments/${appointmentId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async cancelAppointment(token: string, appointmentId: string) {
+    return this.request(`/appointments/${appointmentId}/cancel`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  // Doctor availability endpoints
+  async createAvailability(token: string, availabilityData: { startTime: string; endTime: string }) {
+    return this.request('/appointments/availability', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(availabilityData),
+    });
+  }
+
+  async getDoctorAvailability(token: string) {
+    return this.request('/appointments/availability', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async deleteAvailability(token: string, availabilityId: string) {
+    return this.request(`/appointments/availability/${availabilityId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async generateDailySlots(token: string, date: string) {
+    return this.request('/appointments/availability/generate-daily', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ date }),
+    });
+  }
+
+  async getAvailabilityByDate(token: string, date: string) {
+    return this.request(`/appointments/availability/by-date?date=${date}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async toggleDateAvailability(token: string, date: string, enable: boolean) {
+    return this.request('/appointments/availability/toggle-date', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ date, enable }),
+    });
+  }
+
+  async getCalendarOverview(token: string, startDate: string, endDate: string) {
+    return this.request(`/appointments/availability/calendar?startDate=${startDate}&endDate=${endDate}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getDoctorAvailableSlots(doctorUserId: string, date?: string) {
+    const queryString = date ? `?date=${date}` : '';
+    return this.request(`/appointments/doctors/${doctorUserId}/available-slots${queryString}`);
+  }
+
+  async getDoctorAvailableSlotsByDateRange(doctorUserId: string, startDate: string, endDate: string) {
+    return this.request(`/appointments/doctors/${doctorUserId}/available-slots/range?startDate=${startDate}&endDate=${endDate}`);
+  }
 }
 
 export const apiService = new ApiService();

@@ -1,9 +1,0 @@
-Tên Cột,Kiểu Dữ Liệu,Mô Tả
-id,BIGSERIAL,Khóa chính - ID tự tăng
-patient_user_id,UUID,Tham chiếu đến bệnh nhân trong bảng users
-metric_type,metric_type,Loại chỉ số (steps/sleep_duration_minutes/distance_meters/active_calories)
-value,NUMERIC,Giá trị của chỉ số
-start_time,TIMESTAMPTZ,Thời điểm bắt đầu đo
-end_time,TIMESTAMPTZ,Thời điểm kết thúc đo
-source,TEXT,Nguồn dữ liệu (ví dụ: Google Fit - Apple Health)
-metadata,JSONB,Dữ liệu bổ sung dạng JSON

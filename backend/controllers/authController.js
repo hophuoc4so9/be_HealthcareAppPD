@@ -171,6 +171,54 @@ class AuthController {
       next(error);
     }
   }
+
+  /**
+   * POST /api/auth/register-doctor
+   * Đăng ký bác sĩ mới với thông tin đầy đủ
+   */
+  async registerDoctor(req, res, next) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
+
+      const { 
+        email, password, fullName, phoneNumber, 
+        specialization, medicalLicenseId, clinicAddress, bio 
+      } = req.body;
+
+      // Register user with doctor role
+      const userResult = await authService.register({ 
+        email, 
+        password, 
+        role: 'doctor' 
+      });
+
+      // Create doctor profile
+      const doctorService = require('../services/doctorService');
+      await doctorService.createProfile(userResult.data.user.id, {
+        fullName,
+        phoneNumber,
+        specialization,
+        medicalLicenseId,
+        clinicAddress,
+        bio
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Doctor registered successfully',
+        data: userResult.data
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new AuthController();

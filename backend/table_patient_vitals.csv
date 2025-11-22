@@ -1,7 +1,0 @@
-Tên Cột,Kiểu Dữ Liệu,Mô Tả
-id,BIGSERIAL,Khóa chính - ID tự tăng
-patient_user_id,UUID,Tham chiếu đến bệnh nhân trong bảng users
-height_cm,NUMERIC(5-2),Chiều cao tính bằng cm (ví dụ: 170.50)
-weight_kg,NUMERIC(5-2),Cân nặng tính bằng kg (ví dụ: 65.30)
-bmi,NUMERIC(4-2),Chỉ số khối cơ thể BMI (ví dụ: 22.56)
-recorded_at,TIMESTAMPTZ,Thời điểm ghi nhận chỉ số

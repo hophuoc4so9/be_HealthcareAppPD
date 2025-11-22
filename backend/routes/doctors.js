@@ -9,6 +9,8 @@ router.use(authenticateToken);
 router.post('/profile', authorize('doctor'), doctorController.validateProfile(), doctorController.createProfile);
 router.get('/profile', authorize('doctor'), doctorController.getMyProfile);
 router.put('/profile', authorize('doctor'), doctorController.validateProfile(), doctorController.updateMyProfile);
+router.get('/dashboard/stats', authorize('doctor'), doctorController.getDashboardStats);
+router.get('/patients', authorize('doctor'), doctorController.getMyPatients);
 
 // Public/Admin routes
 router.get('/', doctorController.getAllDoctors);

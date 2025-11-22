@@ -182,6 +182,52 @@ class DoctorRepository {
     const result = await pool.query(query, [userId]);
     return result.rowCount > 0;
   }
+
+  /**
+   * Lấy thống kê dashboard cho doctor
+   */
+  async getDashboardStats(userId) {
+    const query = `
+      SELECT 
+        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1) as total_appointments,
+        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status = 'scheduled') as scheduled_appointments,
+        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status = 'completed') as completed_appointments,
+        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status = 'cancelled') as cancelled_appointments,
+        (SELECT COUNT(DISTINCT patient_user_id) FROM appointments WHERE doctor_user_id = $1) as total_patients,
+        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND appointment_date >= CURRENT_DATE) as upcoming_appointments,
+        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND appointment_date = CURRENT_DATE) as today_appointments
+    `;
+    
+    const result = await pool.query(query, [userId]);
+    return convertKeysToCamel(result.rows[0]);
+  }
+
+  /**
+   * Lấy danh sách patients của doctor
+   */
+  async getMyPatients(userId, limit = 20) {
+    const query = `
+      SELECT DISTINCT
+        u.id,
+        u.email,
+        pp.full_name,
+        pp.date_of_birth,
+        pp.phone_number,
+        pp.gender,
+        COUNT(a.id) as total_appointments,
+        MAX(a.appointment_date) as last_appointment_date
+      FROM users u
+      INNER JOIN patient_profiles pp ON u.id = pp.user_id
+      INNER JOIN appointments a ON u.id = a.patient_user_id
+      WHERE a.doctor_user_id = $1
+      GROUP BY u.id, u.email, pp.full_name, pp.date_of_birth, pp.phone_number, pp.gender
+      ORDER BY MAX(a.appointment_date) DESC
+      LIMIT $2
+    `;
+    
+    const result = await pool.query(query, [userId, limit]);
+    return result.rows.map(row => convertKeysToCamel(row));
+  }
 }
 
 module.exports = new DoctorRepository();

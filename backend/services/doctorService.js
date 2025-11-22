@@ -100,7 +100,23 @@ class DoctorService {
 
     return {
       success: true,
-      message: 'Doctor profile deleted successfully'
+      message: 'Doctor profile deleted'
+    };
+  }
+
+  async getDashboardStats(userId) {
+    const stats = await doctorRepository.getDashboardStats(userId);
+    return {
+      success: true,
+      data: stats
+    };
+  }
+
+  async getMyPatients(userId, limit = 20) {
+    const patients = await doctorRepository.getMyPatients(userId, limit);
+    return {
+      success: true,
+      data: patients
     };
   }
 }

@@ -1,4 +1,0 @@
-Tên Cột,Kiểu Dữ Liệu,Mô Tả
-doctor_user_id,UUID,Khóa chính phức hợp - tham chiếu đến bác sĩ trong users
-patient_user_id,UUID,Khóa chính phức hợp - tham chiếu đến bệnh nhân trong users
-first_consultation_date,DATE,Ngày khám đầu tiên giữa bác sĩ và bệnh nhân

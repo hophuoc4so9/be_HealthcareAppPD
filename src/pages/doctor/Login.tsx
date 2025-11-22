@@ -1,19 +1,19 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Card, Alert, Typography } from 'antd';
+import { useNavigate, Link } from 'react-router-dom';
+import { Form, Input, Button, Card, Typography } from 'antd';
 import { UserOutlined, LockOutlined, MedicineBoxOutlined } from '@ant-design/icons';
 import apiService from '../../services/apiService';
 
 const { Title, Text } = Typography;
 
-export default function Login() {
+export default function DoctorLogin() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem('doctorToken');
     if (token) {
-      navigate('/admin/dashboard');
+      navigate('/doctor/dashboard');
     }
   }, [navigate]);
 
@@ -21,28 +21,24 @@ export default function Login() {
     try {
       const response = await apiService.login(values.email, values.password);
       
-      // Check role and redirect accordingly
-      if (response.data.user.role === 'admin') {
-        localStorage.setItem('adminToken', response.data.token);
-        localStorage.setItem('adminUser', JSON.stringify(response.data.user));
-        navigate('/admin/dashboard');
-      } else if (response.data.user.role === 'doctor') {
-        localStorage.setItem('doctorToken', response.data.token);
-        localStorage.setItem('doctorUser', JSON.stringify(response.data.user));
-        navigate('/doctor/dashboard');
-      } else {
+      if (response.data.user.role !== 'doctor') {
         form.setFields([
           {
             name: 'email',
-            errors: ['Access denied. Admin or Doctor account required.'],
+            errors: ['Tài khoản này không phải là bác sĩ!'],
           },
         ]);
+        return;
       }
+
+      localStorage.setItem('doctorToken', response.data.token);
+      localStorage.setItem('doctorUser', JSON.stringify(response.data.user));
+      navigate('/doctor/dashboard');
     } catch (err: any) {
       form.setFields([
         {
           name: 'password',
-          errors: [err.response?.data?.message || 'Login failed'],
+          errors: [err.response?.data?.message || 'Đăng nhập thất bại'],
         },
       ]);
     }
@@ -68,53 +64,40 @@ export default function Login() {
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <MedicineBoxOutlined style={{ fontSize: '64px', color: '#667eea', marginBottom: '16px' }} />
           <Title level={2} style={{ margin: 0, color: '#1a1a1a' }}>
-            Healthcare Admin
+            🩺 Đăng nhập Bác sĩ
           </Title>
-          <Text type="secondary">Sign in to access admin panel</Text>
+          <Text type="secondary">Truy cập vào hệ thống quản lý bệnh nhân</Text>
         </div>
-
-        <Alert
-          message="Default Credentials"
-          description={
-            <div>
-              <div><strong>Email:</strong> admin@healthcare.com</div>
-              <div><strong>Password:</strong> Admin123456</div>
-            </div>
-          }
-          type="info"
-          showIcon
-          style={{ marginBottom: '24px' }}
-        />
 
         <Form
           form={form}
-          name="login"
+          name="doctorLogin"
           onFinish={handleLogin}
           layout="vertical"
           size="large"
         >
           <Form.Item
             name="email"
-            label="Email Address"
+            label="Email"
             rules={[
-              { required: true, message: 'Please input your email!' },
-              { type: 'email', message: 'Please enter a valid email!' }
+              { required: true, message: 'Vui lòng nhập email!' },
+              { type: 'email', message: 'Email không hợp lệ!' }
             ]}
           >
             <Input 
               prefix={<UserOutlined />} 
-              placeholder="admin@healthcare.com"
+              placeholder="doctor@example.com"
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label="Password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
+            label="Mật khẩu"
+            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Enter your password"
+              placeholder="Nhập mật khẩu"
             />
           </Form.Item>
 
@@ -128,11 +111,18 @@ export default function Login() {
                 fontSize: '16px',
                 fontWeight: 600,
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none'
+                border: 'none',
+                marginBottom: '16px'
               }}
             >
-              Sign In
+              Đăng nhập
             </Button>
+            
+            <div style={{ textAlign: 'center' }}>
+              <Text type="secondary">
+                Chưa có tài khoản? <Link to="/doctor/register">Đăng ký ngay</Link>
+              </Text>
+            </div>
           </Form.Item>
         </Form>
       </Card>

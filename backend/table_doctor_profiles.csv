@@ -1,9 +1,0 @@
-Tên Cột,Kiểu Dữ Liệu,Mô Tả
-user_id,UUID,Khóa chính - tham chiếu đến bảng users (quan hệ 1:1)
-full_name,TEXT,Họ và tên đầy đủ của bác sĩ
-specialization,TEXT,Chuyên khoa (ví dụ: Tim mạch - Nội khoa - Da liễu)
-medical_license_id,TEXT,Số giấy phép hành nghề y
-clinic_address,TEXT,Địa chỉ phòng khám/bệnh viện
-bio,TEXT,Tiểu sử và kinh nghiệm của bác sĩ
-status,verification_status,Trạng thái xác minh (pending/approved/rejected)
-admin_notes,TEXT,Ghi chú của admin về quá trình xác minh

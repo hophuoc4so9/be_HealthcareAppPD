@@ -1,7 +1,0 @@
-Tên Cột,Kiểu Dữ Liệu,Mô Tả
-id,BIGSERIAL,Khóa chính - ID tự tăng
-conversation_id,UUID,Tham chiếu đến cuộc hội thoại trong chat_conversations
-sender_user_id,UUID,Tham chiếu đến người gửi trong bảng users
-message_content,TEXT,Nội dung tin nhắn
-sent_at,TIMESTAMPTZ,Thời điểm gửi tin nhắn
-read_at,TIMESTAMPTZ,Thời điểm đọc tin nhắn (NULL nếu chưa đọc)

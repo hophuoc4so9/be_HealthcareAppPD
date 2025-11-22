@@ -103,6 +103,25 @@ class DoctorController {
       next(error);
     }
   }
+
+  async getDashboardStats(req, res, next) {
+    try {
+      const result = await doctorService.getDashboardStats(req.user.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getMyPatients(req, res, next) {
+    try {
+      const limit = parseInt(req.query.limit) || 20;
+      const result = await doctorService.getMyPatients(req.user.id, limit);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new DoctorController();
