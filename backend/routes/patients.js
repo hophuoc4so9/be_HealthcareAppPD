@@ -101,4 +101,30 @@ router.get('/:id/profile',
   patientController.getProfileById
 );
 
+// ========== DOCTOR ACCESS ROUTES ==========
+
+// GET /api/patients/:id/vitals - Bác sĩ xem vitals của bệnh nhân
+router.get('/:id/vitals',
+  authorize('doctor', 'admin'),
+  patientController.getPatientVitals
+);
+
+// GET /api/patients/:id/vitals/latest - Bác sĩ xem vitals mới nhất
+router.get('/:id/vitals/latest',
+  authorize('doctor', 'admin'),
+  patientController.getPatientLatestVitals
+);
+
+// GET /api/patients/:id/metrics - Bác sĩ xem metrics của bệnh nhân
+router.get('/:id/metrics',
+  authorize('doctor', 'admin'),
+  patientController.getPatientMetrics
+);
+
+// GET /api/patients/:id/metrics/summary - Bác sĩ xem metrics summary
+router.get('/:id/metrics/summary',
+  authorize('doctor', 'admin'),
+  patientController.getPatientMetricsSummary
+);
+
 module.exports = router;

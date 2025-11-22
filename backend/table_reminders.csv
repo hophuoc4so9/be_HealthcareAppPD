@@ -1,0 +1,11 @@
+Tên Cột,Kiểu Dữ Liệu,Mô Tả
+id,UUID,Khóa chính - ID duy nhất của lời nhắc
+patient_user_id,UUID,Tham chiếu đến bệnh nhân trong bảng users
+title,TEXT,Tiêu đề lời nhắc
+description,TEXT,Mô tả chi tiết lời nhắc
+reminder_type,reminder_type,Loại lời nhắc (medication/sleep/appointment/general)
+cron_expression,TEXT,Biểu thức cron cho lời nhắc lặp lại
+one_time_at,TIMESTAMPTZ,Thời điểm nhắc một lần (không lặp lại)
+timezone_name,TEXT,Múi giờ (ví dụ: Asia/Ho_Chi_Minh)
+is_active,BOOLEAN,Trạng thái kích hoạt lời nhắc
+created_at,TIMESTAMPTZ,Thời điểm tạo lời nhắc

@@ -1,0 +1,9 @@
+Tên Cột,Kiểu Dữ Liệu,Mô Tả
+id,UUID,Khóa chính - ID duy nhất của lịch hẹn
+patient_user_id,UUID,Tham chiếu đến bệnh nhân trong bảng users
+doctor_user_id,UUID,Tham chiếu đến bác sĩ trong bảng users
+availability_slot_id,UUID,Tham chiếu đến khe thời gian trong doctor_availability (duy nhất)
+status,appointment_status,Trạng thái (scheduled/completed/cancelled_by_patient/cancelled_by_doctor)
+patient_notes,TEXT,Ghi chú từ bệnh nhân về lý do khám
+doctor_notes,TEXT,Ghi chú từ bác sĩ sau khi khám
+created_at,TIMESTAMPTZ,Thời điểm tạo lịch hẹn

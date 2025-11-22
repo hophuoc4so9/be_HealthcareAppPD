@@ -1,0 +1,4 @@
+Tên Cột,Kiểu Dữ Liệu,Mô Tả
+id,UUID,Khóa chính - ID duy nhất của cuộc hội thoại
+patient_user_id,UUID,Tham chiếu đến bệnh nhân trong bảng users
+doctor_user_id,UUID,Tham chiếu đến bác sĩ trong bảng users

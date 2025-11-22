@@ -12,6 +12,58 @@ class AppointmentService {
     };
   }
 
+  // Generate default slots for a date
+  async generateDailySlots(doctorUserId, date) {
+    const slots = await appointmentRepository.generateDailySlots(doctorUserId, date);
+
+    return {
+      success: true,
+      message: `Generated ${slots.length} time slots`,
+      data: { slots, count: slots.length }
+    };
+  }
+
+  // Get availability by date
+  async getAvailabilityByDate(doctorUserId, date) {
+    const slots = await appointmentRepository.getAvailabilityByDate(doctorUserId, date);
+
+    return {
+      success: true,
+      data: { slots, count: slots.length }
+    };
+  }
+
+  // Toggle availability for a specific date (enable/disable)
+  async toggleDateAvailability(doctorUserId, date, enable) {
+    if (enable) {
+      // Enable: generate default slots
+      const slots = await appointmentRepository.generateDailySlots(doctorUserId, date);
+      return {
+        success: true,
+        message: 'Availability enabled for this date',
+        data: { slots, count: slots.length }
+      };
+    } else {
+      // Disable: delete all unbooked slots
+      const deleted = await appointmentRepository.deleteSlotsByDate(doctorUserId, date);
+      return {
+        success: true,
+        message: 'Availability disabled for this date',
+        data: { deletedSlots: deleted.length }
+      };
+    }
+  }
+
+  // Get calendar overview
+  async getCalendarOverview(doctorUserId, startDate, endDate) {
+    const overview = await appointmentRepository.getAvailabilityByDateRange(doctorUserId, startDate, endDate);
+
+    return {
+      success: true,
+      data: { dates: overview, count: overview.length }
+    };
+  }
+
   async getMyAvailability(doctorUserId) {
     const slots = await appointmentRepository.getAvailabilityByDoctorId(doctorUserId);
 
@@ -115,6 +167,36 @@ class AppointmentService {
       success: true,
       message: 'Appointment cancelled',
       data: updated
+    };
+  }
+
+  // For patients to view doctor's available slots
+  async getDoctorAvailableSlots(doctorUserId, date = null) {
+    const slots = await appointmentRepository.getAvailableSlotsByDoctor(doctorUserId, date);
+
+    return {
+      success: true,
+      data: { 
+        doctorUserId,
+        date: date || 'all upcoming',
+        slots, 
+        count: slots.length 
+      }
+    };
+  }
+
+  async getDoctorAvailableSlotsByDateRange(doctorUserId, startDate, endDate) {
+    const slots = await appointmentRepository.getAvailableSlotsByDateRange(doctorUserId, startDate, endDate);
+
+    return {
+      success: true,
+      data: { 
+        doctorUserId,
+        startDate,
+        endDate,
+        slots, 
+        count: slots.length 
+      }
     };
   }
 }

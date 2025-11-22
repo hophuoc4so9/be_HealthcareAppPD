@@ -365,6 +365,113 @@ class PatientService {
       }
     };
   }
+
+  // ========== DOCTOR ACCESS ==========
+
+  /**
+   * Bác sĩ xem vitals của bệnh nhân
+   * @param {string} patientUserId
+   * @param {number} limit
+   * @returns {Promise<Object>}
+   */
+  async getPatientVitalsForDoctor(patientUserId, limit = 10) {
+    const history = await patientRepository.getVitalsHistory(patientUserId, limit);
+
+    return {
+      success: true,
+      data: {
+        patientUserId,
+        history,
+        count: history.length
+      }
+    };
+  }
+
+  /**
+   * Bác sĩ xem vitals mới nhất của bệnh nhân
+   * @param {string} patientUserId
+   * @returns {Promise<Object>}
+   */
+  async getPatientLatestVitalsForDoctor(patientUserId) {
+    const vitals = await patientRepository.getLatestVitals(patientUserId);
+
+    return {
+      success: true,
+      data: {
+        patientUserId,
+        vitals
+      }
+    };
+  }
+
+  /**
+   * Bác sĩ xem metrics của bệnh nhân
+   * @param {string} patientUserId
+   * @param {Object} options
+   * @returns {Promise<Object>}
+   */
+  async getPatientMetricsForDoctor(patientUserId, options = {}) {
+    const {
+      metricType,
+      startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      endDate = new Date()
+    } = options;
+
+    if (!metricType) {
+      throw new Error('Metric type is required');
+    }
+
+    const metrics = await patientRepository.getMetrics(
+      patientUserId,
+      metricType,
+      startDate,
+      endDate
+    );
+
+    return {
+      success: true,
+      data: {
+        patientUserId,
+        metricType,
+        metrics,
+        count: metrics.length
+      }
+    };
+  }
+
+  /**
+   * Bác sĩ xem metrics summary của bệnh nhân
+   * @param {string} patientUserId
+   * @param {Object} options
+   * @returns {Promise<Object>}
+   */
+  async getPatientMetricsSummaryForDoctor(patientUserId, options = {}) {
+    const {
+      metricType,
+      startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      endDate = new Date()
+    } = options;
+
+    if (!metricType) {
+      throw new Error('Metric type is required');
+    }
+
+    const summary = await patientRepository.getMetricsSummary(
+      patientUserId,
+      metricType,
+      startDate,
+      endDate
+    );
+
+    return {
+      success: true,
+      data: {
+        patientUserId,
+        metricType,
+        summary
+      }
+    };
+  }
 }
 
 module.exports = new PatientService();

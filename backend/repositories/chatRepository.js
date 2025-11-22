@@ -15,6 +15,64 @@ class ChatRepository {
     return convertKeysToCamel(result.rows[0]);
   }
 
+  async createConversationGeneric(userId1, role1, userId2, role2) {
+    // Determine who is patient and who is doctor
+    let patientUserId, doctorUserId;
+    
+    if (role1 === 'patient' && role2 === 'doctor') {
+      patientUserId = userId1;
+      doctorUserId = userId2;
+    } else if (role1 === 'doctor' && role2 === 'patient') {
+      patientUserId = userId2;
+      doctorUserId = userId1;
+    } else {
+      throw new Error('Conversation must be between patient and doctor');
+    }
+
+    const query = `
+      INSERT INTO chat_conversations (patient_user_id, doctor_user_id)
+      VALUES ($1, $2)
+      ON CONFLICT (patient_user_id, doctor_user_id) DO UPDATE
+      SET patient_user_id = EXCLUDED.patient_user_id
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [patientUserId, doctorUserId]);
+    return convertKeysToCamel(result.rows[0]);
+  }
+
+  async getConversationById(conversationId) {
+    const query = `
+      SELECT 
+        cc.*,
+        u_patient.email as patient_email,
+        u_doctor.email as doctor_email,
+        pp.full_name as patient_name,
+        dp.full_name as doctor_name
+      FROM chat_conversations cc
+      JOIN users u_patient ON cc.patient_user_id = u_patient.id
+      JOIN users u_doctor ON cc.doctor_user_id = u_doctor.id
+      LEFT JOIN patient_profiles pp ON cc.patient_user_id = pp.user_id
+      LEFT JOIN doctor_profiles dp ON cc.doctor_user_id = dp.user_id
+      WHERE cc.id = $1
+    `;
+    
+    const result = await pool.query(query, [conversationId]);
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
+  }
+
+  async checkConversationAccess(conversationId, userId) {
+    const query = `
+      SELECT EXISTS(
+        SELECT 1 FROM chat_conversations 
+        WHERE id = $1 AND (patient_user_id = $2 OR doctor_user_id = $2)
+      ) as has_access
+    `;
+    
+    const result = await pool.query(query, [conversationId, userId]);
+    return result.rows[0].has_access;
+  }
+
   async getConversationsByUserId(userId, role) {
     const query = `
       SELECT 

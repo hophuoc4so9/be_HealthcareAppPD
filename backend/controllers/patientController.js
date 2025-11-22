@@ -320,6 +320,83 @@ class PatientController {
       next(error);
     }
   }
+
+  // ========== DOCTOR ACCESS ==========
+
+  /**
+   * GET /api/patients/:id/vitals
+   * Bác sĩ xem vitals của bệnh nhân
+   */
+  async getPatientVitals(req, res, next) {
+    try {
+      const { id } = req.params;
+      const limit = parseInt(req.query.limit) || 10;
+      
+      const result = await patientService.getPatientVitalsForDoctor(id, limit);
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/patients/:id/vitals/latest
+   * Bác sĩ xem vitals mới nhất của bệnh nhân
+   */
+  async getPatientLatestVitals(req, res, next) {
+    try {
+      const { id } = req.params;
+      
+      const result = await patientService.getPatientLatestVitalsForDoctor(id);
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/patients/:id/metrics
+   * Bác sĩ xem metrics của bệnh nhân
+   */
+  async getPatientMetrics(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { metricType, startDate, endDate } = req.query;
+      
+      const result = await patientService.getPatientMetricsForDoctor(id, {
+        metricType,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined
+      });
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/patients/:id/metrics/summary
+   * Bác sĩ xem metrics summary của bệnh nhân
+   */
+  async getPatientMetricsSummary(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { metricType, startDate, endDate } = req.query;
+      
+      const result = await patientService.getPatientMetricsSummaryForDoctor(id, {
+        metricType,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined
+      });
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new PatientController();

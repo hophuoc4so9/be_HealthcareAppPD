@@ -51,6 +51,58 @@ class AppointmentController {
     }
   }
 
+  async generateDailySlots(req, res, next) {
+    try {
+      const { date } = req.body;
+      if (!date) {
+        return res.status(400).json({ success: false, message: 'Date is required' });
+      }
+      const result = await appointmentService.generateDailySlots(req.user.id, date);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAvailabilityByDate(req, res, next) {
+    try {
+      const { date } = req.query;
+      if (!date) {
+        return res.status(400).json({ success: false, message: 'Date is required' });
+      }
+      const result = await appointmentService.getAvailabilityByDate(req.user.id, date);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async toggleDateAvailability(req, res, next) {
+    try {
+      const { date, enable } = req.body;
+      if (!date || enable === undefined) {
+        return res.status(400).json({ success: false, message: 'Date and enable flag are required' });
+      }
+      const result = await appointmentService.toggleDateAvailability(req.user.id, date, enable);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getCalendarOverview(req, res, next) {
+    try {
+      const { startDate, endDate } = req.query;
+      if (!startDate || !endDate) {
+        return res.status(400).json({ success: false, message: 'Start date and end date are required' });
+      }
+      const result = await appointmentService.getCalendarOverview(req.user.id, startDate, endDate);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Appointments
   async bookAppointment(req, res, next) {
     try {
@@ -98,6 +150,42 @@ class AppointmentController {
   async cancelAppointment(req, res, next) {
     try {
       const result = await appointmentService.cancelAppointment(req.params.id, req.user.id, req.user.role);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // For patients to view doctor's available slots
+  async getDoctorAvailableSlots(req, res, next) {
+    try {
+      const { doctorUserId } = req.params;
+      const { date } = req.query;
+      
+      if (!doctorUserId) {
+        return res.status(400).json({ success: false, message: 'Doctor ID is required' });
+      }
+
+      const result = await appointmentService.getDoctorAvailableSlots(doctorUserId, date);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getDoctorAvailableSlotsByDateRange(req, res, next) {
+    try {
+      const { doctorUserId } = req.params;
+      const { startDate, endDate } = req.query;
+      
+      if (!doctorUserId || !startDate || !endDate) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Doctor ID, start date, and end date are required' 
+        });
+      }
+
+      const result = await appointmentService.getDoctorAvailableSlotsByDateRange(doctorUserId, startDate, endDate);
       res.json(result);
     } catch (error) {
       next(error);

@@ -8,10 +8,31 @@ class ChatController {
     ];
   }
 
+  validateCreateConversation() {
+    return [
+      body('targetUserId').isUUID().withMessage('Valid target user ID required')
+    ];
+  }
+
   async createConversation(req, res, next) {
     try {
       const { doctorUserId } = req.body;
       const result = await chatService.createConversation(req.user.id, doctorUserId);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createConversationWithUser(req, res, next) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+      }
+
+      const { targetUserId } = req.body;
+      const result = await chatService.createConversationWithUser(req.user.id, targetUserId);
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -27,12 +48,22 @@ class ChatController {
     }
   }
 
+  async getConversationDetails(req, res, next) {
+    try {
+      const { conversationId } = req.params;
+      const result = await chatService.getConversationDetails(conversationId, req.user.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getMessages(req, res, next) {
     try {
       const { conversationId } = req.params;
       const { limit } = req.query;
       
-      const result = await chatService.getMessages(conversationId, parseInt(limit) || 50);
+      const result = await chatService.getMessages(conversationId, req.user.id, parseInt(limit) || 50);
       res.json(result);
     } catch (error) {
       next(error);
@@ -59,7 +90,7 @@ class ChatController {
   async markAsRead(req, res, next) {
     try {
       const { messageId } = req.params;
-      const result = await chatService.markAsRead(messageId);
+      const result = await chatService.markAsRead(messageId, req.user.id);
       res.json(result);
     } catch (error) {
       next(error);

@@ -1,0 +1,6 @@
+Tên Cột,Kiểu Dữ Liệu,Mô Tả
+id,UUID,Khóa chính - ID duy nhất của khe thời gian
+doctor_user_id,UUID,Tham chiếu đến bác sĩ trong bảng users
+start_time,TIMESTAMPTZ,Thời điểm bắt đầu khe thời gian trống
+end_time,TIMESTAMPTZ,Thời điểm kết thúc khe thời gian trống
+is_booked,BOOLEAN,Trạng thái đã được đặt hay chưa (mặc định: false)

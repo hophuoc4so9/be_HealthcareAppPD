@@ -182,6 +182,138 @@ class AppointmentRepository {
     const result = await pool.query(query, [slotId]);
     return convertKeysToCamel(result.rows[0]);
   }
+
+  // Auto-generate availability slots
+  async generateDailySlots(doctorUserId, date) {
+    // Default time slots: 8, 9, 10, 11, 13, 14, 15, 16, 19, 20
+    const defaultHours = [8, 9, 10, 11, 13, 14, 15, 16, 19, 20];
+    const slots = [];
+
+    for (const hour of defaultHours) {
+      const startTime = new Date(date);
+      startTime.setHours(hour, 0, 0, 0);
+      
+      const endTime = new Date(startTime);
+      endTime.setHours(hour + 1, 0, 0, 0);
+
+      const query = `
+        INSERT INTO doctor_availability (doctor_user_id, start_time, end_time, is_booked)
+        VALUES ($1, $2, $3, false)
+        ON CONFLICT DO NOTHING
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [doctorUserId, startTime, endTime]);
+      if (result.rows[0]) {
+        slots.push(convertKeysToCamel(result.rows[0]));
+      }
+    }
+
+    return slots;
+  }
+
+  async getAvailabilityByDate(doctorUserId, date) {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const query = `
+      SELECT * FROM doctor_availability
+      WHERE doctor_user_id = $1 
+        AND start_time >= $2 
+        AND start_time < $3
+      ORDER BY start_time
+    `;
+    
+    const result = await pool.query(query, [doctorUserId, startOfDay, endOfDay]);
+    return result.rows.map(row => convertKeysToCamel(row));
+  }
+
+  async deleteSlotsByDate(doctorUserId, date) {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const query = `
+      DELETE FROM doctor_availability
+      WHERE doctor_user_id = $1 
+        AND start_time >= $2 
+        AND start_time < $3
+        AND is_booked = false
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [doctorUserId, startOfDay, endOfDay]);
+    return result.rows.map(row => convertKeysToCamel(row));
+  }
+
+  async getAvailabilityByDateRange(doctorUserId, startDate, endDate) {
+    const query = `
+      SELECT 
+        DATE(start_time) as date,
+        COUNT(*) as total_slots,
+        COUNT(*) FILTER (WHERE is_booked = false) as available_slots,
+        COUNT(*) FILTER (WHERE is_booked = true) as booked_slots
+      FROM doctor_availability
+      WHERE doctor_user_id = $1 
+        AND start_time >= $2 
+        AND start_time < $3
+      GROUP BY DATE(start_time)
+      ORDER BY date
+    `;
+    
+    const result = await pool.query(query, [doctorUserId, startDate, endDate]);
+    return result.rows.map(row => convertKeysToCamel(row));
+  }
+
+  // For patients to view available slots
+  async getAvailableSlotsByDoctor(doctorUserId, date = null) {
+    let query = `
+      SELECT da.* 
+      FROM doctor_availability da
+      WHERE da.doctor_user_id = $1 
+        AND da.is_booked = false
+        AND da.start_time > NOW()
+    `;
+    
+    const params = [doctorUserId];
+
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      query += ` AND da.start_time >= $2 AND da.start_time < $3`;
+      params.push(startOfDay, endOfDay);
+    }
+
+    query += ` ORDER BY da.start_time ASC`;
+    
+    const result = await pool.query(query, params);
+    return result.rows.map(row => convertKeysToCamel(row));
+  }
+
+  async getAvailableSlotsByDateRange(doctorUserId, startDate, endDate) {
+    const query = `
+      SELECT da.*
+      FROM doctor_availability da
+      WHERE da.doctor_user_id = $1 
+        AND da.is_booked = false
+        AND da.start_time >= $2 
+        AND da.start_time < $3
+        AND da.start_time > NOW()
+      ORDER BY da.start_time ASC
+    `;
+    
+    const result = await pool.query(query, [doctorUserId, startDate, endDate]);
+    return result.rows.map(row => convertKeysToCamel(row));
+  }
 }
 
 module.exports = new AppointmentRepository();

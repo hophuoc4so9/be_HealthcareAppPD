@@ -1,0 +1,14 @@
+Tên Bảng,Chức Năng
+users,Quản lý thông tin xác thực và vai trò người dùng (bệnh nhân/bác sĩ/admin)
+patient_profiles,Lưu trữ hồ sơ chi tiết của bệnh nhân (họ tên - ngày sinh - giới tính - địa chỉ)
+doctor_profiles,Lưu trữ hồ sơ chi tiết của bác sĩ (chuyên khoa - giấy phép hành nghề - địa chỉ phòng khám)
+patient_vitals,Lưu trữ các chỉ số sức khỏe tĩnh của bệnh nhân (chiều cao - cân nặng - BMI)
+patient_metrics,Lưu trữ các chỉ số sức khỏe động từ thiết bị đeo (bước chân - giấc ngủ - khoảng cách - calo)
+reminders,Quản lý lời nhắc cho bệnh nhân (uống thuốc - ngủ - lịch hẹn)
+doctor_availability,Quản lý lịch trống của bác sĩ (các khe thời gian có thể đặt lịch)
+appointments,Quản lý lịch hẹn giữa bệnh nhân và bác sĩ
+chat_conversations,Quản lý các cuộc hội thoại chat giữa bệnh nhân và bác sĩ
+chat_messages,Lưu trữ tin nhắn trong các cuộc hội thoại
+doctor_patients,Quản lý mối quan hệ giữa bác sĩ và bệnh nhân
+articles,Quản lý bài viết tin tức sức khỏe do admin tạo
+health_facilities_points,Lưu trữ thông tin về các cơ sở y tế với tọa độ địa lý

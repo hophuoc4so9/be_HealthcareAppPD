@@ -1,0 +1,9 @@
+Tên Cột,Kiểu Dữ Liệu,Mô Tả
+id,UUID,Khóa chính - ID duy nhất của người dùng (tự động sinh)
+email,TEXT,Email đăng nhập (duy nhất - không được trùng)
+hashed_password,TEXT,Mật khẩu đã được mã hóa
+role,user_role,Vai trò người dùng (patient/doctor/admin)
+is_active,BOOLEAN,Trạng thái kích hoạt tài khoản (mặc định: true)
+is_banned,BOOLEAN,Trạng thái cấm tài khoản (mặc định: false)
+created_at,TIMESTAMPTZ,Thời điểm tạo tài khoản
+updated_at,TIMESTAMPTZ,Thời điểm cập nhật cuối cùng

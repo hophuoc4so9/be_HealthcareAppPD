@@ -1,0 +1,7 @@
+Tên Cột,Kiểu Dữ Liệu,Mô Tả
+user_id,UUID,Khóa chính - tham chiếu đến bảng users (quan hệ 1:1)
+full_name,TEXT,Họ và tên đầy đủ của bệnh nhân
+date_of_birth,DATE,Ngày tháng năm sinh
+sex,user_sex,Giới tính (male/female/other/prefer_not_to_say)
+phone_number,TEXT,Số điện thoại liên hệ
+address,TEXT,Địa chỉ nhà của bệnh nhân
