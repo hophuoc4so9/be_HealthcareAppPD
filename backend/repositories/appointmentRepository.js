@@ -120,7 +120,7 @@ class AppointmentRepository {
       params.push(status);
     }
     
-    query += ` ORDER BY a.appointment_date DESC, s.start_time DESC`;
+    query += ` ORDER BY s.start_time DESC`;
     
     const result = await pool.query(query, params);
     return result.rows.map(row => convertKeysToCamel(row));
