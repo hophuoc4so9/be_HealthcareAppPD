@@ -33,22 +33,16 @@ export default function PatientDetail() {
       const token = localStorage.getItem('doctorToken');
       if (!token || !id) return;
 
+      // Load patient detail
+      const patientRes: any = await apiService.getPatientDetail(token, id);
+      if (patientRes?.success) {
+        setPatient(patientRes.data);
+      }
+
       // Load patient appointments
-      const appointmentsRes = await apiService.getDoctorAppointments(token);
-      if ((appointmentsRes as any).success) {
-        const patientAppts = ((appointmentsRes as any).data || []).filter(
-          (apt: any) => apt.patientUserId === id
-        );
-        setAppointments(patientAppts);
-        
-        // Get patient info from first appointment
-        if (patientAppts.length > 0) {
-          setPatient({
-            id: id,
-            fullName: patientAppts[0].patientName,
-            email: patientAppts[0].patientEmail,
-          });
-        }
+      const appointmentsRes: any = await apiService.getPatientAppointments(token, id);
+      if (appointmentsRes?.success) {
+        setAppointments(appointmentsRes.data || []);
       }
 
     } catch (error) {
@@ -229,14 +223,14 @@ export default function PatientDetail() {
                 <Col span={12}>
                   <Statistic
                     title="Tổng lịch hẹn"
-                    value={appointments.length}
+                    value={patient?.totalAppointments || 0}
                     prefix={<CalendarOutlined />}
                   />
                 </Col>
                 <Col span={12}>
                   <Statistic
                     title="Đã hoàn thành"
-                    value={appointments.filter(a => a.status === 'completed').length}
+                    value={patient?.completedAppointments || 0}
                     prefix={<HeartOutlined />}
                   />
                 </Col>

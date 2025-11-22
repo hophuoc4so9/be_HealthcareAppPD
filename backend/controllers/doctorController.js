@@ -122,6 +122,33 @@ class DoctorController {
       next(error);
     }
   }
+
+  async getPatientDetail(req, res, next) {
+    try {
+      const result = await doctorService.getPatientDetail(req.user.id, req.params.patientId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getPatientAppointments(req, res, next) {
+    try {
+      const result = await doctorService.getPatientAppointments(req.user.id, req.params.patientId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getPatientHealthMetrics(req, res, next) {
+    try {
+      const result = await doctorService.getPatientHealthMetrics(req.user.id, req.params.patientId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new DoctorController();

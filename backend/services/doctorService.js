@@ -119,6 +119,34 @@ class DoctorService {
       data: patients
     };
   }
+
+  async getPatientDetail(doctorUserId, patientUserId) {
+    const patient = await doctorRepository.getPatientDetail(doctorUserId, patientUserId);
+    if (!patient) throw new Error('Patient not found or not authorized');
+    
+    return {
+      success: true,
+      data: patient
+    };
+  }
+
+  async getPatientAppointments(doctorUserId, patientUserId) {
+    const appointments = await doctorRepository.getPatientAppointments(doctorUserId, patientUserId);
+    
+    return {
+      success: true,
+      data: appointments
+    };
+  }
+
+  async getPatientHealthMetrics(doctorUserId, patientUserId) {
+    const metrics = await doctorRepository.getPatientHealthMetrics(doctorUserId, patientUserId);
+    
+    return {
+      success: true,
+      data: metrics
+    };
+  }
 }
 
 module.exports = new DoctorService();

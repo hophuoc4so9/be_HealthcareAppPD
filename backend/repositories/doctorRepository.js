@@ -228,6 +228,74 @@ class DoctorRepository {
     const result = await pool.query(query, [userId, limit]);
     return result.rows.map(row => convertKeysToCamel(row));
   }
+
+  /**
+   * Lấy chi tiết bệnh nhân
+   */
+  async getPatientDetail(doctorUserId, patientUserId) {
+    const query = `
+      SELECT 
+        u.id,
+        u.email,
+        u.created_at,
+        pp.*,
+        COUNT(DISTINCT a.id) as total_appointments,
+        MAX(a.appointment_date) as last_appointment_date,
+        COUNT(DISTINCT CASE WHEN a.status = 'completed' THEN a.id END) as completed_appointments,
+        COUNT(DISTINCT CASE WHEN a.status = 'scheduled' THEN a.id END) as upcoming_appointments
+      FROM users u
+      INNER JOIN patient_profiles pp ON u.id = pp.user_id
+      LEFT JOIN appointments a ON u.id = a.patient_user_id AND a.doctor_user_id = $1
+      WHERE u.id = $2
+      GROUP BY u.id, u.email, u.created_at, pp.id, pp.user_id, pp.full_name, pp.date_of_birth, 
+               pp.phone_number, pp.gender, pp.address, pp.emergency_contact, pp.blood_type, 
+               pp.allergies, pp.current_medications, pp.medical_history, pp.created_at, pp.updated_at
+      HAVING COUNT(a.id) > 0
+    `;
+    
+    const result = await pool.query(query, [doctorUserId, patientUserId]);
+    return result.rows[0] ? convertKeysToCamel(result.rows[0]) : null;
+  }
+
+  /**
+   * Lấy lịch sử appointments của bệnh nhân với doctor
+   */
+  async getPatientAppointments(doctorUserId, patientUserId) {
+    const query = `
+      SELECT 
+        a.*,
+        s.start_time as slot_start_time,
+        s.end_time as slot_end_time
+      FROM appointments a
+      LEFT JOIN appointment_slots s ON a.availability_slot_id = s.id
+      WHERE a.doctor_user_id = $1 AND a.patient_user_id = $2
+      ORDER BY a.appointment_date DESC, s.start_time DESC
+    `;
+    
+    const result = await pool.query(query, [doctorUserId, patientUserId]);
+    return result.rows.map(row => convertKeysToCamel(row));
+  }
+
+  /**
+   * Lấy chỉ số sức khỏe của bệnh nhân (placeholder - cần table health_metrics)
+   */
+  async getPatientHealthMetrics(doctorUserId, patientUserId) {
+    // Check if patient belongs to this doctor
+    const checkQuery = `
+      SELECT COUNT(*) as count
+      FROM appointments
+      WHERE doctor_user_id = $1 AND patient_user_id = $2
+    `;
+    
+    const checkResult = await pool.query(checkQuery, [doctorUserId, patientUserId]);
+    if (parseInt(checkResult.rows[0].count) === 0) {
+      return [];
+    }
+
+    // TODO: Implement when health_metrics table exists
+    // For now, return empty array or mock data
+    return [];
+  }
 }
 
 module.exports = new DoctorRepository();

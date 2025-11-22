@@ -269,6 +269,39 @@ class ApiService {
     });
   }
 
+  async getPatientDetail(token: string, patientId: string) {
+    return this.request(`/doctors/patients/${patientId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getPatientAppointments(token: string, patientId: string) {
+    return this.request(`/doctors/patients/${patientId}/appointments`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getPatientHealthMetrics(token: string, patientId: string) {
+    return this.request(`/doctors/patients/${patientId}/health-metrics`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getDoctorAppointments(token: string, status?: string) {
+    const queryString = status ? `?status=${status}` : '';
+    return this.request(`/appointments${queryString}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
   async getAllDoctors(params?: { page?: number; limit?: number; status?: string }) {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append('page', params.page.toString());
@@ -284,15 +317,6 @@ class ApiService {
   }
 
   // Appointment endpoints
-  async getDoctorAppointments(token: string, status?: string) {
-    const queryString = status ? `?status=${status}` : '';
-    return this.request(`/appointments${queryString}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-  }
-
   async getAppointmentDetails(token: string, appointmentId: string) {
     return this.request(`/appointments/${appointmentId}`, {
       headers: {
@@ -391,6 +415,60 @@ class ApiService {
 
   async getDoctorAvailableSlotsByDateRange(doctorUserId: string, startDate: string, endDate: string) {
     return this.request(`/appointments/doctors/${doctorUserId}/available-slots/range?startDate=${startDate}&endDate=${endDate}`);
+  }
+
+  // Chat endpoints
+  async getMyConversations(token: string) {
+    return this.request('/chat/conversations', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getConversationDetails(token: string, conversationId: string) {
+    return this.request(`/chat/conversations/${conversationId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getConversationMessages(token: string, conversationId: string) {
+    return this.request(`/chat/conversations/${conversationId}/messages`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async sendMessage(token: string, conversationId: string, messageContent: string) {
+    return this.request(`/chat/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ messageContent }),
+    });
+  }
+
+  async createConversation(token: string, withUserId: string) {
+    return this.request('/chat/conversations/start', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ withUserId }),
+    });
+  }
+
+  async markMessageAsRead(token: string, messageId: string) {
+    return this.request(`/chat/messages/${messageId}/read`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
   }
 }
 

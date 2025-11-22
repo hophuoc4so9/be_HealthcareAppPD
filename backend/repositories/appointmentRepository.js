@@ -102,12 +102,14 @@ class AppointmentRepository {
     let query = `
       SELECT 
         a.*,
+        u.email as patient_email,
         pp.full_name as patient_name,
-        da.start_time,
-        da.end_time
+        s.start_time as slot_start_time,
+        s.end_time as slot_end_time
       FROM appointments a
+      JOIN users u ON a.patient_user_id = u.id
       JOIN patient_profiles pp ON a.patient_user_id = pp.user_id
-      JOIN doctor_availability da ON a.availability_slot_id = da.id
+      LEFT JOIN appointment_slots s ON a.availability_slot_id = s.id
       WHERE a.doctor_user_id = $1
     `;
     
@@ -118,7 +120,7 @@ class AppointmentRepository {
       params.push(status);
     }
     
-    query += ` ORDER BY da.start_time DESC`;
+    query += ` ORDER BY a.appointment_date DESC, s.start_time DESC`;
     
     const result = await pool.query(query, params);
     return result.rows.map(row => convertKeysToCamel(row));

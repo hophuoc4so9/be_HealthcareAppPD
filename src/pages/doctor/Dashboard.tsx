@@ -25,10 +25,11 @@ export default function DoctorDashboard() {
   const [loading, setLoading] = useState(false);
   
   // Chat states
-  const [chatConversations] = useState<any[]>([]);
+  const [chatConversations, setChatConversations] = useState<any[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [chatMessages] = useState<any[]>([]);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [messageText, setMessageText] = useState('');
+  const [loadingChat, setLoadingChat] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('doctorToken');
@@ -55,6 +56,20 @@ export default function DoctorDashboard() {
     };
   }, [navigate]);
 
+  // Load chat conversations when chat tab is selected
+  useEffect(() => {
+    if (selectedTab === 'chat') {
+      loadChatConversations();
+    }
+  }, [selectedTab]);
+
+  // Load messages when conversation is selected
+  useEffect(() => {
+    if (selectedConversation) {
+      loadChatMessages(selectedConversation);
+    }
+  }, [selectedConversation]);
+
   const loadDashboardData = async () => {
     setLoading(true);
     try {
@@ -70,7 +85,7 @@ export default function DoctorDashboard() {
       // Load appointments
       const appointmentsRes: any = await apiService.getDoctorAppointments(token);
       if (appointmentsRes?.success) {
-        setAppointments(appointmentsRes.data || []);
+        setAppointments(appointmentsRes.data?.appointments || []);
       }
 
       // Load patients
@@ -84,6 +99,39 @@ export default function DoctorDashboard() {
       message.error('Không thể tải dữ liệu dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadChatConversations = async () => {
+    setLoadingChat(true);
+    try {
+      const token = localStorage.getItem('doctorToken');
+      if (!token) return;
+
+      const response: any = await apiService.getMyConversations(token);
+      if (response?.success && response?.data) {
+        setChatConversations(response.data);
+      }
+    } catch (error: any) {
+      console.error('Error loading conversations:', error);
+      message.error('Không thể tải danh sách hội thoại');
+    } finally {
+      setLoadingChat(false);
+    }
+  };
+
+  const loadChatMessages = async (conversationId: string) => {
+    try {
+      const token = localStorage.getItem('doctorToken');
+      if (!token) return;
+
+      const response: any = await apiService.getConversationMessages(token, conversationId);
+      if (response?.success && response?.data) {
+        setChatMessages(response.data);
+      }
+    } catch (error: any) {
+      console.error('Error loading messages:', error);
+      message.error('Không thể tải tin nhắn');
     }
   };
 
@@ -405,31 +453,48 @@ export default function DoctorDashboard() {
   );
 
   const renderChat = () => {
-    const handleSendMessage = () => {
-      if (!messageText.trim()) return;
-      setMessageText('');
-      message.info('Chức năng chat đang được phát triển');
+    const handleSendMessage = async () => {
+      if (!messageText.trim() || !selectedConversation) return;
+      
+      try {
+        const token = localStorage.getItem('doctorToken');
+        if (!token) return;
+
+        await apiService.sendMessage(token, selectedConversation, messageText.trim());
+        setMessageText('');
+        
+        // Reload messages after sending
+        await loadChatMessages(selectedConversation);
+        message.success('Đã gửi tin nhắn');
+      } catch (error) {
+        console.error('Error sending message:', error);
+        message.error('Gửi tin nhắn thất bại');
+      }
     };
 
     const renderConversationList = () => (
       <Card 
         title="Tin nhắn" 
-        bodyStyle={{ padding: 0, height: 'calc(100vh - 350px)', overflowY: 'auto' }}
+        styles={{ body: { padding: 0, height: 'calc(100vh - 350px)', overflowY: 'auto' } }}
       >
-        {chatConversations.length === 0 ? (
+        {loadingChat ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <Text type="secondary">Đang tải...</Text>
+          </div>
+        ) : !chatConversations || chatConversations.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <MessageOutlined style={{ fontSize: 48, color: '#ccc', marginBottom: 16 }} />
             <Text type="secondary">Chưa có cuộc trò chuyện nào</Text>
           </div>
         ) : (
           <List
-            dataSource={chatConversations}
+            dataSource={chatConversations || []}
             renderItem={(conversation: any) => (
               <List.Item
-                onClick={() => setSelectedConversation(conversation.id)}
+                onClick={() => setSelectedConversation(conversation.conversationId || conversation.id)}
                 style={{
                   cursor: 'pointer',
-                  background: selectedConversation === conversation.id ? '#e6f7ff' : 'transparent',
+                  background: selectedConversation === (conversation.conversationId || conversation.id) ? '#e6f7ff' : 'transparent',
                   padding: '12px 16px'
                 }}
               >
@@ -439,15 +504,15 @@ export default function DoctorDashboard() {
                       <Avatar icon={<UserOutlined />} size={48} />
                     </Badge>
                   }
-                  title={conversation.patientName}
+                  title={conversation.otherParticipantName || conversation.patientName || 'Người dùng'}
                   description={
                     <div>
                       <Text ellipsis style={{ width: 200, display: 'block' }}>
-                        {conversation.lastMessage || 'Chưa có tin nhắn'}
+                        {conversation.lastMessageContent || conversation.lastMessage || 'Chưa có tin nhắn'}
                       </Text>
                       <Text type="secondary" style={{ fontSize: 12 }}>
-                        {conversation.lastMessageTime 
-                          ? dayjs(conversation.lastMessageTime).format('HH:mm DD/MM/YYYY')
+                        {conversation.lastMessageTime || conversation.lastMessageCreatedAt
+                          ? dayjs(conversation.lastMessageTime || conversation.lastMessageCreatedAt).format('HH:mm DD/MM/YYYY')
                           : ''
                         }
                       </Text>
@@ -480,7 +545,9 @@ export default function DoctorDashboard() {
         );
       }
 
-      const selectedConv = chatConversations.find((c: any) => c.id === selectedConversation);
+      const selectedConv = chatConversations.find((c: any) => 
+        (c.conversationId || c.id) === selectedConversation
+      );
 
       return (
         <Card 
@@ -488,9 +555,9 @@ export default function DoctorDashboard() {
             <Space>
               <Avatar icon={<UserOutlined />} />
               <div>
-                <div>{selectedConv?.patientName}</div>
+                <div>{selectedConv?.otherParticipantName || selectedConv?.patientName || 'Người dùng'}</div>
                 <Text type="secondary" style={{ fontSize: 12 }}>
-                  {selectedConv?.patientEmail}
+                  {selectedConv?.otherParticipantEmail || selectedConv?.patientEmail || ''}
                 </Text>
               </div>
             </Space>
@@ -503,7 +570,7 @@ export default function DoctorDashboard() {
             padding: '16px',
             background: '#f5f5f5'
           }}>
-            {chatMessages.length === 0 ? (
+            {!chatMessages || chatMessages.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px' }}>
                 <Text type="secondary">Chưa có tin nhắn nào</Text>
               </div>
