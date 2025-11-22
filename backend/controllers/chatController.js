@@ -72,13 +72,19 @@ class ChatController {
 
   async sendMessage(req, res, next) {
     try {
+      console.log('sendMessage - req.body:', req.body);
+      console.log('sendMessage - req.params:', req.params);
+      
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log('Validation errors:', errors.array());
         return res.status(400).json({ success: false, errors: errors.array() });
       }
 
       const { conversationId } = req.params;
       const { messageContent } = req.body;
+      
+      console.log('Sending message:', { conversationId, messageContent });
       
       const result = await chatService.sendMessage(conversationId, req.user.id, messageContent);
       res.status(201).json(result);

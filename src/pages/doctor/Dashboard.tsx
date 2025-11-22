@@ -489,6 +489,8 @@ export default function DoctorDashboard() {
     const handleSendMessage = async () => {
       const trimmedMessage = messageText.trim();
       
+      console.log('Sending message:', { trimmedMessage, selectedConversation });
+      
       if (!trimmedMessage) {
         message.warning('Vui lòng nhập nội dung tin nhắn');
         return;
@@ -506,7 +508,11 @@ export default function DoctorDashboard() {
           return;
         }
 
+        console.log('Calling sendMessage API...', { conversationId: selectedConversation, messageContent: trimmedMessage });
+        
         const response = await apiService.sendMessage(token, selectedConversation, trimmedMessage);
+        
+        console.log('Send message response:', response);
         
         if (response && (response as any).success) {
           setMessageText('');
@@ -514,7 +520,8 @@ export default function DoctorDashboard() {
           await loadChatMessages(selectedConversation);
           message.success('Đã gửi tin nhắn');
         } else {
-          message.error('Không thể gửi tin nhắn');
+          const errorMsg = (response as any)?.error || (response as any)?.message || 'Không thể gửi tin nhắn';
+          message.error(errorMsg);
         }
       } catch (error: any) {
         console.error('Error sending message:', error);
@@ -614,10 +621,11 @@ export default function DoctorDashboard() {
             </Space>
           }
           style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}
-          styles={{ body: { padding: 0, flex: 1, display: 'flex', flexDirection: 'column' } }}
+          styles={{ body: { padding: 0, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 } }}
         >
           <div style={{ 
             flex: 1,
+            minHeight: 0,
             overflowY: 'auto',
             padding: '16px',
             background: '#f5f5f5'
