@@ -59,6 +59,14 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Custom middleware to handle text/plain as JSON (browser sends this to avoid preflight)
+app.use((req, res, next) => {
+  if (req.headers['content-type'] === 'text/plain' || req.headers['content-type']?.startsWith('text/plain')) {
+    req.headers['content-type'] = 'application/json';
+  }
+  next();
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

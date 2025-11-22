@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Layout, Card, Row, Col, Descriptions, Typography, Button, Space, 
-  Table, Tag, Tabs, message, Spin, Avatar, Timeline, Statistic 
+  Table, Tag, Tabs, message, Spin, Avatar, Statistic 
 } from 'antd';
 import { 
   ArrowLeftOutlined, UserOutlined, PhoneOutlined, MailOutlined,
-  CalendarOutlined, HeartOutlined, MessageOutlined, FileTextOutlined
+  CalendarOutlined, HeartOutlined, MessageOutlined, BarChartOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import apiService from '../../services/apiService';
@@ -21,7 +21,6 @@ export default function PatientDetail() {
   const [loading, setLoading] = useState(false);
   const [patient, setPatient] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
-  const [reminders, setReminders] = useState<any[]>([]);
 
   useEffect(() => {
     loadPatientData();
@@ -43,16 +42,6 @@ export default function PatientDetail() {
       const appointmentsRes: any = await apiService.getPatientAppointments(token, id);
       if (appointmentsRes?.success) {
         setAppointments(appointmentsRes.data || []);
-      }
-
-      // Load patient reminders
-      try {
-        const remindersRes: any = await apiService.getPatientReminders(token, id);
-        if (remindersRes?.success) {
-          setReminders(remindersRes.data || []);
-        }
-      } catch (error) {
-        console.log('Reminders not available');
       }
 
     } catch (error) {
@@ -177,12 +166,6 @@ export default function PatientDetail() {
                 >
                   Gửi tin nhắn
                 </Button>
-                <Button 
-                  icon={<FileTextOutlined />} 
-                  block
-                >
-                  Tải hồ sơ bệnh án
-                </Button>
               </Space>
             </Card>
 
@@ -220,95 +203,11 @@ export default function PatientDetail() {
                   />
                 </TabPane>
 
-                <TabPane tab="Ghi chú y tế" key="notes">
-                  <Timeline>
-                    {appointments
-                      .filter(apt => apt.patientNotes || apt.doctorNotes)
-                      .map(apt => (
-                        <Timeline.Item key={apt.id}>
-                          <Text strong>
-                            {apt.appointmentDate 
-                              ? dayjs(apt.appointmentDate).format('DD/MM/YYYY')
-                              : apt.slotStartTime 
-                                ? dayjs(apt.slotStartTime).format('DD/MM/YYYY')
-                                : '-'
-                            }
-                          </Text>
-                          <br />
-                          {apt.patientNotes && (
-                            <>
-                              <Text type="secondary">Ghi chú bệnh nhân: </Text>
-                              <Text>{apt.patientNotes}</Text>
-                              <br />
-                            </>
-                          )}
-                          {apt.doctorNotes && (
-                            <>
-                              <Text type="secondary">Ghi chú bác sĩ: </Text>
-                              <Text>{apt.doctorNotes}</Text>
-                            </>
-                          )}
-                        </Timeline.Item>
-                      ))}
-                  </Timeline>
-                  {appointments.filter(apt => apt.patientNotes || apt.doctorNotes).length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '40px' }}>
-                      <Text type="secondary">Chưa có ghi chú y tế</Text>
-                    </div>
-                  )}
-                </TabPane>
-
-                <TabPane tab="Lời nhắc" key="reminders">
-                  <Table
-                    dataSource={reminders}
-                    rowKey="id"
-                    pagination={false}
-                    locale={{ emptyText: 'Chưa có lời nhắc nào' }}
-                    columns={[
-                      {
-                        title: 'Tiêu đề',
-                        dataIndex: 'title',
-                        key: 'title',
-                      },
-                      {
-                        title: 'Loại',
-                        dataIndex: 'reminderType',
-                        key: 'reminderType',
-                        render: (type: string) => {
-                          const typeMap: any = {
-                            medication: 'Uống thuốc',
-                            appointment: 'Lịch hẹn',
-                            exercise: 'Tập luyện',
-                            checkup: 'Kiểm tra sức khỏe',
-                          };
-                          return typeMap[type] || type;
-                        },
-                      },
-                      {
-                        title: 'Trạng thái',
-                        dataIndex: 'isActive',
-                        key: 'isActive',
-                        render: (isActive: boolean) => (
-                          <Tag color={isActive ? 'green' : 'default'}>
-                            {isActive ? 'Hoạt động' : 'Tắt'}
-                          </Tag>
-                        ),
-                      },
-                      {
-                        title: 'Ngày tạo',
-                        dataIndex: 'createdAt',
-                        key: 'createdAt',
-                        render: (date: string) => dayjs(date).format('DD/MM/YYYY'),
-                      },
-                    ]}
-                  />
-                </TabPane>
-
-                <TabPane tab="Đơn thuốc" key="prescriptions">
+                <TabPane tab="Biểu đồ chỉ số" key="metrics">
                   <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                    <FileTextOutlined style={{ fontSize: 64, color: '#ccc', marginBottom: 16 }} />
-                    <Title level={4}>Đơn thuốc</Title>
-                    <Text type="secondary">Tính năng quản lý đơn thuốc đang được phát triển</Text>
+                    <BarChartOutlined style={{ fontSize: 64, color: '#ccc', marginBottom: 16 }} />
+                    <Title level={4}>Biểu đồ chỉ số sức khỏe</Title>
+                    <Text type="secondary">Tính năng biểu đồ đang được phát triển</Text>
                   </div>
                 </TabPane>
               </Tabs>
