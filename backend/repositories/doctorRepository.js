@@ -194,8 +194,18 @@ class DoctorRepository {
         (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status = 'completed') as completed_appointments,
         (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status = 'cancelled') as cancelled_appointments,
         (SELECT COUNT(DISTINCT patient_user_id) FROM appointments WHERE doctor_user_id = $1) as total_patients,
-        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND appointment_date >= CURRENT_DATE) as upcoming_appointments,
-        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND appointment_date = CURRENT_DATE) as today_appointments
+        (SELECT COUNT(*) 
+         FROM appointments a 
+         JOIN appointment_slots s ON a.availability_slot_id = s.id 
+         WHERE a.doctor_user_id = $1 
+         AND DATE(s.start_time AT TIME ZONE 'UTC') >= CURRENT_DATE
+        ) as upcoming_appointments,
+        (SELECT COUNT(*) 
+         FROM appointments a 
+         JOIN appointment_slots s ON a.availability_slot_id = s.id 
+         WHERE a.doctor_user_id = $1 
+         AND DATE(s.start_time AT TIME ZONE 'UTC') = CURRENT_DATE
+        ) as today_appointments
     `;
     
     const result = await pool.query(query, [userId]);
@@ -215,13 +225,14 @@ class DoctorRepository {
         pp.phone_number,
         pp.gender,
         COUNT(a.id) as total_appointments,
-        MAX(a.appointment_date) as last_appointment_date
+        MAX(s.start_time) as last_appointment_date
       FROM users u
       INNER JOIN patient_profiles pp ON u.id = pp.user_id
       INNER JOIN appointments a ON u.id = a.patient_user_id
+      LEFT JOIN appointment_slots s ON a.availability_slot_id = s.id
       WHERE a.doctor_user_id = $1
       GROUP BY u.id, u.email, pp.full_name, pp.date_of_birth, pp.phone_number, pp.gender
-      ORDER BY MAX(a.appointment_date) DESC
+      ORDER BY MAX(s.start_time) DESC
       LIMIT $2
     `;
     
@@ -240,12 +251,13 @@ class DoctorRepository {
         u.created_at,
         pp.*,
         COUNT(DISTINCT a.id) as total_appointments,
-        MAX(a.appointment_date) as last_appointment_date,
+        MAX(s.start_time) as last_appointment_date,
         COUNT(DISTINCT CASE WHEN a.status = 'completed' THEN a.id END) as completed_appointments,
         COUNT(DISTINCT CASE WHEN a.status = 'scheduled' THEN a.id END) as upcoming_appointments
       FROM users u
       INNER JOIN patient_profiles pp ON u.id = pp.user_id
       LEFT JOIN appointments a ON u.id = a.patient_user_id AND a.doctor_user_id = $1
+      LEFT JOIN appointment_slots s ON a.availability_slot_id = s.id
       WHERE u.id = $2
       GROUP BY u.id, u.email, u.created_at, pp.id, pp.user_id, pp.full_name, pp.date_of_birth, 
                pp.phone_number, pp.gender, pp.address, pp.emergency_contact, pp.blood_type, 
@@ -265,11 +277,12 @@ class DoctorRepository {
       SELECT 
         a.*,
         s.start_time as slot_start_time,
-        s.end_time as slot_end_time
+        s.end_time as slot_end_time,
+        DATE(s.start_time AT TIME ZONE 'UTC') as appointment_date
       FROM appointments a
       LEFT JOIN appointment_slots s ON a.availability_slot_id = s.id
       WHERE a.doctor_user_id = $1 AND a.patient_user_id = $2
-      ORDER BY a.appointment_date DESC, s.start_time DESC
+      ORDER BY s.start_time DESC
     `;
     
     const result = await pool.query(query, [doctorUserId, patientUserId]);
