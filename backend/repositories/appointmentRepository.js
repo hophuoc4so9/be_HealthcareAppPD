@@ -109,7 +109,7 @@ class AppointmentRepository {
       FROM appointments a
       JOIN users u ON a.patient_user_id = u.id
       JOIN patient_profiles pp ON a.patient_user_id = pp.user_id
-      LEFT JOIN appointment_slots s ON a.availability_slot_id = s.id
+      LEFT JOIN doctor_availability s ON a.availability_slot_id = s.id
       WHERE a.doctor_user_id = $1
     `;
     

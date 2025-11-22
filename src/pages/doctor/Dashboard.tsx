@@ -78,20 +78,26 @@ export default function DoctorDashboard() {
       
       // Load dashboard stats
       const statsRes: any = await apiService.getDoctorDashboardStats(token);
-      if (statsRes?.success) {
+      if (statsRes?.success && statsRes?.data) {
         setStats(statsRes.data);
+      } else {
+        setStats({});
       }
 
       // Load appointments
       const appointmentsRes: any = await apiService.getDoctorAppointments(token);
-      if (appointmentsRes?.success) {
-        setAppointments(appointmentsRes.data?.appointments || []);
+      if (appointmentsRes?.success && appointmentsRes?.data) {
+        setAppointments(Array.isArray(appointmentsRes.data.appointments) ? appointmentsRes.data.appointments : []);
+      } else {
+        setAppointments([]);
       }
 
       // Load patients
       const patientsRes: any = await apiService.getDoctorPatients(token, 20);
-      if (patientsRes?.success) {
-        setPatients(patientsRes.data || []);
+      if (patientsRes?.success && patientsRes?.data) {
+        setPatients(Array.isArray(patientsRes.data) ? patientsRes.data : []);
+      } else {
+        setPatients([]);
       }
 
     } catch (error: any) {
@@ -106,14 +112,20 @@ export default function DoctorDashboard() {
     setLoadingChat(true);
     try {
       const token = localStorage.getItem('doctorToken');
-      if (!token) return;
+      if (!token) {
+        setChatConversations([]);
+        return;
+      }
 
       const response: any = await apiService.getMyConversations(token);
-      if (response?.success && response?.data) {
+      if (response?.success && Array.isArray(response?.data)) {
         setChatConversations(response.data);
+      } else {
+        setChatConversations([]);
       }
     } catch (error: any) {
       console.error('Error loading conversations:', error);
+      setChatConversations([]);
       message.error('Không thể tải danh sách hội thoại');
     } finally {
       setLoadingChat(false);
@@ -123,14 +135,20 @@ export default function DoctorDashboard() {
   const loadChatMessages = async (conversationId: string) => {
     try {
       const token = localStorage.getItem('doctorToken');
-      if (!token) return;
+      if (!token) {
+        setChatMessages([]);
+        return;
+      }
 
       const response: any = await apiService.getConversationMessages(token, conversationId);
-      if (response?.success && response?.data) {
+      if (response?.success && Array.isArray(response?.data)) {
         setChatMessages(response.data);
+      } else {
+        setChatMessages([]);
       }
     } catch (error: any) {
       console.error('Error loading messages:', error);
+      setChatMessages([]);
       message.error('Không thể tải tin nhắn');
     }
   };
@@ -194,15 +212,22 @@ export default function DoctorDashboard() {
   const appointmentColumns = [
     {
       title: 'Ngày',
-      dataIndex: 'appointmentDate',
       key: 'appointmentDate',
-      render: (text: string) => dayjs(text).format('DD/MM/YYYY'),
+      render: (_: any, record: any) => {
+        // Try appointmentDate first, fallback to slotStartTime
+        const date = record.appointmentDate || record.slotStartTime;
+        return date ? dayjs(date).format('DD/MM/YYYY') : '-';
+      },
     },
     {
       title: 'Giờ',
       key: 'time',
-      render: (_: any, record: any) => 
-        `${record.slotStartTime?.substring(0, 5)} - ${record.slotEndTime?.substring(0, 5)}`,
+      render: (_: any, record: any) => {
+        if (record.slotStartTime && record.slotEndTime) {
+          return `${dayjs(record.slotStartTime).format('HH:mm')} - ${dayjs(record.slotEndTime).format('HH:mm')}`;
+        }
+        return '-';
+      },
     },
     {
       title: 'Bệnh nhân',
@@ -229,9 +254,9 @@ export default function DoctorDashboard() {
     },
     {
       title: 'Ghi chú',
-      dataIndex: 'notes',
       key: 'notes',
       ellipsis: true,
+      render: (_: any, record: any) => record.patientNotes || record.doctorNotes || '-',
     },
     {
       title: 'Hành động',

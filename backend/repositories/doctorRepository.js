@@ -187,29 +187,34 @@ class DoctorRepository {
    * Lấy thống kê dashboard cho doctor
    */
   async getDashboardStats(userId) {
-    const query = `
-      SELECT 
-        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1) as total_appointments,
-        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status = 'scheduled') as scheduled_appointments,
-        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status = 'completed') as completed_appointments,
-        (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status = 'cancelled') as cancelled_appointments,
-        (SELECT COUNT(DISTINCT patient_user_id) FROM appointments WHERE doctor_user_id = $1) as total_patients,
-        (SELECT COUNT(*) 
-         FROM appointments a 
-         JOIN appointment_slots s ON a.availability_slot_id = s.id 
-         WHERE a.doctor_user_id = $1 
-         AND DATE(s.start_time AT TIME ZONE 'UTC') >= CURRENT_DATE
-        ) as upcoming_appointments,
-        (SELECT COUNT(*) 
-         FROM appointments a 
-         JOIN appointment_slots s ON a.availability_slot_id = s.id 
-         WHERE a.doctor_user_id = $1 
-         AND DATE(s.start_time AT TIME ZONE 'UTC') = CURRENT_DATE
-        ) as today_appointments
-    `;
-    
-    const result = await pool.query(query, [userId]);
-    return convertKeysToCamel(result.rows[0]);
+    try {
+      const query = `
+        SELECT 
+          (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1) as total_appointments,
+          (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status::text = 'scheduled') as scheduled_appointments,
+          (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND status::text = 'completed') as completed_appointments,
+          (SELECT COUNT(*) FROM appointments WHERE doctor_user_id = $1 AND (status::text = 'cancelled_by_patient' OR status::text = 'cancelled_by_doctor')) as cancelled_appointments,
+          (SELECT COUNT(DISTINCT patient_user_id) FROM appointments WHERE doctor_user_id = $1) as total_patients,
+          (SELECT COUNT(*) 
+           FROM appointments a 
+           JOIN doctor_availability s ON a.availability_slot_id = s.id 
+           WHERE a.doctor_user_id = $1 
+           AND DATE(s.start_time AT TIME ZONE 'UTC') >= CURRENT_DATE
+          ) as upcoming_appointments,
+          (SELECT COUNT(*) 
+           FROM appointments a 
+           JOIN doctor_availability s ON a.availability_slot_id = s.id 
+           WHERE a.doctor_user_id = $1 
+           AND DATE(s.start_time AT TIME ZONE 'UTC') = CURRENT_DATE
+          ) as today_appointments
+      `;
+      
+      const result = await pool.query(query, [userId]);
+      return convertKeysToCamel(result.rows[0]);
+    } catch (error) {
+      console.error('Error in getDashboardStats:', error);
+      throw error;
+    }
   }
 
   /**
@@ -229,7 +234,7 @@ class DoctorRepository {
       FROM users u
       INNER JOIN patient_profiles pp ON u.id = pp.user_id
       INNER JOIN appointments a ON u.id = a.patient_user_id
-      LEFT JOIN appointment_slots s ON a.availability_slot_id = s.id
+      LEFT JOIN doctor_availability s ON a.availability_slot_id = s.id
       WHERE a.doctor_user_id = $1
       GROUP BY u.id, u.email, pp.full_name, pp.date_of_birth, pp.phone_number, pp.gender
       ORDER BY MAX(s.start_time) DESC
@@ -257,7 +262,7 @@ class DoctorRepository {
       FROM users u
       INNER JOIN patient_profiles pp ON u.id = pp.user_id
       LEFT JOIN appointments a ON u.id = a.patient_user_id AND a.doctor_user_id = $1
-      LEFT JOIN appointment_slots s ON a.availability_slot_id = s.id
+      LEFT JOIN doctor_availability s ON a.availability_slot_id = s.id
       WHERE u.id = $2
       GROUP BY u.id, u.email, u.created_at, pp.id, pp.user_id, pp.full_name, pp.date_of_birth, 
                pp.phone_number, pp.gender, pp.address, pp.emergency_contact, pp.blood_type, 
@@ -280,7 +285,7 @@ class DoctorRepository {
         s.end_time as slot_end_time,
         DATE(s.start_time AT TIME ZONE 'UTC') as appointment_date
       FROM appointments a
-      LEFT JOIN appointment_slots s ON a.availability_slot_id = s.id
+      LEFT JOIN doctor_availability s ON a.availability_slot_id = s.id
       WHERE a.doctor_user_id = $1 AND a.patient_user_id = $2
       ORDER BY s.start_time DESC
     `;

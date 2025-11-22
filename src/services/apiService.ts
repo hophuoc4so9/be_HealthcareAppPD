@@ -470,6 +470,72 @@ class ApiService {
       },
     });
   }
+
+  // Reminders endpoints
+  async getPatientReminders(token: string, patientId: string) {
+    return this.request(`/reminders/patient/${patientId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async createReminderForPatient(token: string, patientId: string, reminderData: any) {
+    return this.request(`/reminders/patient/${patientId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(reminderData),
+    });
+  }
+
+  async updateReminder(token: string, reminderId: string, reminderData: any) {
+    return this.request(`/reminders/${reminderId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(reminderData),
+    });
+  }
+
+  async deleteReminder(token: string, reminderId: string) {
+    return this.request(`/reminders/${reminderId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  // Health metrics/vitals endpoints
+  async getPatientVitals(token: string, patientId: string) {
+    return this.request(`/patients/${patientId}/vitals`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async addPatientVital(token: string, patientId: string, vitalData: any) {
+    return this.request(`/patients/${patientId}/vitals`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(vitalData),
+    });
+  }
+
+  async getPatientMetrics(token: string, patientId: string, metricType?: string) {
+    const query = metricType ? `?type=${metricType}` : '';
+    return this.request(`/patients/${patientId}/metrics${query}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
 }
 
 export const apiService = new ApiService();

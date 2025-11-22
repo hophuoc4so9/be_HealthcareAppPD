@@ -21,7 +21,8 @@ export default function PatientDetail() {
   const [loading, setLoading] = useState(false);
   const [patient, setPatient] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
-  const vitals: any[] = [];
+  const [vitals, setVitals] = useState<any[]>([]);
+  const [reminders, setReminders] = useState<any[]>([]);
 
   useEffect(() => {
     loadPatientData();
@@ -43,6 +44,26 @@ export default function PatientDetail() {
       const appointmentsRes: any = await apiService.getPatientAppointments(token, id);
       if (appointmentsRes?.success) {
         setAppointments(appointmentsRes.data || []);
+      }
+
+      // Load patient vitals
+      try {
+        const vitalsRes: any = await apiService.getPatientVitals(token, id);
+        if (vitalsRes?.success) {
+          setVitals(vitalsRes.data || []);
+        }
+      } catch (error) {
+        console.log('Vitals not available');
+      }
+
+      // Load patient reminders
+      try {
+        const remindersRes: any = await apiService.getPatientReminders(token, id);
+        if (remindersRes?.success) {
+          setReminders(remindersRes.data || []);
+        }
+      } catch (error) {
+        console.log('Reminders not available');
       }
 
     } catch (error) {
@@ -264,20 +285,85 @@ export default function PatientDetail() {
                 <TabPane tab="Ghi chú y tế" key="notes">
                   <Timeline>
                     {appointments
-                      .filter(apt => apt.notes)
+                      .filter(apt => apt.patientNotes || apt.doctorNotes)
                       .map(apt => (
                         <Timeline.Item key={apt.id}>
-                          <Text strong>{dayjs(apt.appointmentDate).format('DD/MM/YYYY')}</Text>
+                          <Text strong>
+                            {apt.appointmentDate 
+                              ? dayjs(apt.appointmentDate).format('DD/MM/YYYY')
+                              : apt.slotStartTime 
+                                ? dayjs(apt.slotStartTime).format('DD/MM/YYYY')
+                                : '-'
+                            }
+                          </Text>
                           <br />
-                          <Text>{apt.notes}</Text>
+                          {apt.patientNotes && (
+                            <>
+                              <Text type="secondary">Ghi chú bệnh nhân: </Text>
+                              <Text>{apt.patientNotes}</Text>
+                              <br />
+                            </>
+                          )}
+                          {apt.doctorNotes && (
+                            <>
+                              <Text type="secondary">Ghi chú bác sĩ: </Text>
+                              <Text>{apt.doctorNotes}</Text>
+                            </>
+                          )}
                         </Timeline.Item>
                       ))}
                   </Timeline>
-                  {appointments.filter(apt => apt.notes).length === 0 && (
+                  {appointments.filter(apt => apt.patientNotes || apt.doctorNotes).length === 0 && (
                     <div style={{ textAlign: 'center', padding: '40px' }}>
                       <Text type="secondary">Chưa có ghi chú y tế</Text>
                     </div>
                   )}
+                </TabPane>
+
+                <TabPane tab="Lời nhắc" key="reminders">
+                  <Table
+                    dataSource={reminders}
+                    rowKey="id"
+                    pagination={false}
+                    locale={{ emptyText: 'Chưa có lời nhắc nào' }}
+                    columns={[
+                      {
+                        title: 'Tiêu đề',
+                        dataIndex: 'title',
+                        key: 'title',
+                      },
+                      {
+                        title: 'Loại',
+                        dataIndex: 'reminderType',
+                        key: 'reminderType',
+                        render: (type: string) => {
+                          const typeMap: any = {
+                            medication: 'Uống thuốc',
+                            appointment: 'Lịch hẹn',
+                            exercise: 'Tập luyện',
+                            checkup: 'Kiểm tra sức khỏe',
+                          };
+                          return typeMap[type] || type;
+                        },
+                      },
+                      {
+                        title: 'Trạng thái',
+                        dataIndex: 'isActive',
+                        key: 'isActive',
+                        render: (isActive: boolean) => (
+                          <Tag color={isActive ? 'green' : 'default'}>
+                            {isActive ? 'Hoạt động' : 'Tắt'}
+                          </Tag>
+                        ),
+                      },
+                      {
+                        title: 'Ngày tạo',
+                        dataIndex: 'createdAt',
+                        key: 'createdAt',
+                        render: (date: string) => dayjs(date).format('DD/MM/YYYY'),
+                      },
+                    ]}
+                  />
                 </TabPane>
 
                 <TabPane tab="Đơn thuốc" key="prescriptions">
