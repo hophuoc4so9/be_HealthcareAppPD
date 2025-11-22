@@ -63,37 +63,45 @@ export default function ChatPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('doctorToken');
-      if (!token) return;
+      if (!token) {
+        setConversations([]);
+        return;
+      }
 
-      // TODO: Implement API call when backend is ready
-      // const response = await apiService.getMyConversations(token);
-      // setConversations(response.data || []);
-      
-      // Mock data for now
-      setConversations([]);
+      const response: any = await (await import('../../services/apiService')).default.getMyConversations(token);
+      if (response?.success && Array.isArray(response?.data)) {
+        setConversations(response.data);
+      } else {
+        setConversations([]);
+      }
       
     } catch (error) {
       console.error('Error loading conversations:', error);
+      setConversations([]);
       message.error('Không thể tải danh sách hội thoại');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadMessages = async (_conversationId: string) => {
+  const loadMessages = async (conversationId: string) => {
     try {
       const token = localStorage.getItem('doctorToken');
-      if (!token) return;
+      if (!token) {
+        setMessages([]);
+        return;
+      }
 
-      // TODO: Implement API call when backend is ready
-      // const response = await apiService.getMessages(token, _conversationId);
-      // setMessages(response.data || []);
-      
-      // Mock data for now
-      setMessages([]);
+      const response: any = await (await import('../../services/apiService')).default.getConversationMessages(token, conversationId);
+      if (response?.success && Array.isArray(response?.data)) {
+        setMessages(response.data);
+      } else {
+        setMessages([]);
+      }
       
     } catch (error) {
       console.error('Error loading messages:', error);
+      setMessages([]);
       message.error('Không thể tải tin nhắn');
     }
   };
@@ -106,12 +114,20 @@ export default function ChatPage() {
       const token = localStorage.getItem('doctorToken');
       if (!token) return;
 
-      // TODO: Implement API call when backend is ready
-      // await apiService.sendMessage(token, selectedConversation, messageText);
+      const apiService = (await import('../../services/apiService')).default;
+      const response: any = await apiService.sendMessage(
+        token, 
+        selectedConversation, 
+        messageText
+      );
       
-      setMessageText('');
-      // loadMessages(selectedConversation);
-      message.info('Chức năng chat đang được phát triển');
+      if (response?.success) {
+        setMessageText('');
+        await loadMessages(selectedConversation);
+        message.success('Đã gửi tin nhắn');
+      } else {
+        message.error('Không thể gửi tin nhắn');
+      }
       
     } catch (error) {
       console.error('Error sending message:', error);

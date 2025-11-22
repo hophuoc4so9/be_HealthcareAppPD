@@ -32,12 +32,16 @@ export default function ScheduleManagement() {
 
       // Load appointments
       const appointmentsRes = await apiService.getDoctorAppointments(token);
-      if ((appointmentsRes as any).success) {
-        setAppointments((appointmentsRes as any).data || []);
+      if ((appointmentsRes as any)?.success && (appointmentsRes as any)?.data) {
+        const appts = (appointmentsRes as any).data.appointments || (appointmentsRes as any).data || [];
+        setAppointments(Array.isArray(appts) ? appts : []);
+      } else {
+        setAppointments([]);
       }
 
     } catch (error) {
       console.error('Error loading schedule data:', error);
+      setAppointments([]);
       message.error('Không thể tải dữ liệu lịch làm việc');
     }
   };
@@ -101,11 +105,15 @@ export default function ScheduleManagement() {
 
   const getListData = (value: Dayjs) => {
     const dateStr = value.format('YYYY-MM-DD');
-    const dayAppointments = appointments.filter(apt => apt.appointmentDate === dateStr);
+    const dayAppointments = appointments.filter(apt => {
+      const apptDate = apt.appointmentDate || 
+                       (apt.slotStartTime ? dayjs(apt.slotStartTime).format('YYYY-MM-DD') : null);
+      return apptDate === dateStr;
+    });
     
     return dayAppointments.map(apt => ({
       type: apt.status === 'scheduled' ? 'success' : apt.status === 'completed' ? 'default' : 'error',
-      content: `${apt.slotStartTime?.substring(0, 5)} - ${apt.patientName}`,
+      content: `${apt.slotStartTime?.substring(11, 16) || apt.slotStartTime?.substring(0, 5)} - ${apt.patientName}`,
     }));
   };
 
@@ -125,9 +133,11 @@ export default function ScheduleManagement() {
     );
   };
 
-  const selectedDateAppointments = appointments.filter(
-    apt => apt.appointmentDate === selectedDate.format('YYYY-MM-DD')
-  );
+  const selectedDateAppointments = appointments.filter(apt => {
+    const apptDate = apt.appointmentDate || 
+                     (apt.slotStartTime ? dayjs(apt.slotStartTime).format('YYYY-MM-DD') : null);
+    return apptDate === selectedDate.format('YYYY-MM-DD');
+  });
 
   const stats = {
     total: appointments.length,

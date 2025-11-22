@@ -21,7 +21,6 @@ export default function PatientDetail() {
   const [loading, setLoading] = useState(false);
   const [patient, setPatient] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
-  const [vitals, setVitals] = useState<any[]>([]);
   const [reminders, setReminders] = useState<any[]>([]);
 
   useEffect(() => {
@@ -44,16 +43,6 @@ export default function PatientDetail() {
       const appointmentsRes: any = await apiService.getPatientAppointments(token, id);
       if (appointmentsRes?.success) {
         setAppointments(appointmentsRes.data || []);
-      }
-
-      // Load patient vitals
-      try {
-        const vitalsRes: any = await apiService.getPatientVitals(token, id);
-        if (vitalsRes?.success) {
-          setVitals(vitalsRes.data || []);
-        }
-      } catch (error) {
-        console.log('Vitals not available');
       }
 
       // Load patient reminders
@@ -104,47 +93,6 @@ export default function PatientDetail() {
       title: 'Ghi chú',
       dataIndex: 'notes',
       key: 'notes',
-    },
-  ];
-
-  const vitalsColumns = [
-    {
-      title: 'Ngày đo',
-      dataIndex: 'measuredAt',
-      key: 'measuredAt',
-      render: (text: string) => dayjs(text).format('DD/MM/YYYY HH:mm'),
-    },
-    {
-      title: 'Huyết áp',
-      key: 'bloodPressure',
-      render: (_: any, record: any) => 
-        record.systolicBp && record.diastolicBp 
-          ? `${record.systolicBp}/${record.diastolicBp} mmHg` 
-          : '-',
-    },
-    {
-      title: 'Nhịp tim',
-      dataIndex: 'heartRate',
-      key: 'heartRate',
-      render: (rate: number) => rate ? `${rate} bpm` : '-',
-    },
-    {
-      title: 'Cân nặng',
-      dataIndex: 'weight',
-      key: 'weight',
-      render: (weight: number) => weight ? `${weight} kg` : '-',
-    },
-    {
-      title: 'Chiều cao',
-      dataIndex: 'height',
-      key: 'height',
-      render: (height: number) => height ? `${height} cm` : '-',
-    },
-    {
-      title: 'Nhiệt độ',
-      dataIndex: 'temperature',
-      key: 'temperature',
-      render: (temp: number) => temp ? `${temp} °C` : '-',
     },
   ];
 
@@ -269,16 +217,6 @@ export default function PatientDetail() {
                     dataSource={appointments}
                     rowKey="id"
                     pagination={{ pageSize: 10 }}
-                  />
-                </TabPane>
-
-                <TabPane tab="Chỉ số sức khỏe" key="vitals">
-                  <Table
-                    columns={vitalsColumns}
-                    dataSource={vitals}
-                    rowKey="id"
-                    pagination={{ pageSize: 10 }}
-                    locale={{ emptyText: 'Chưa có dữ liệu chỉ số sức khỏe' }}
                   />
                 </TabPane>
 
