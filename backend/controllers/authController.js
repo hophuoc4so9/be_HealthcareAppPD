@@ -96,7 +96,22 @@ class AuthController {
 
       const { email, password } = req.body;
       const result = await authService.login(email, password);
-      
+
+      // Nếu là patient, tự động tạo profile nếu chưa có
+      if (result.success && result.data && result.data.user && result.data.user.role === 'patient') {
+        const patientService = require('../services/patientService');
+        const userId = result.data.user.id;
+        // Tạo fullName từ email (bỏ phần @ và sau đó)
+        const fullName = email.split('@')[0];
+        // Gọi createProfile, không cần chờ kết quả
+        patientService.createProfile(userId, {
+          fullName,
+          dateOfBirth: null,
+          sex: null,
+          phoneNumber: null
+        }).catch(() => {}); // Không làm gì nếu lỗi
+      }
+
       res.json(result);
     } catch (error) {
       next(error);
