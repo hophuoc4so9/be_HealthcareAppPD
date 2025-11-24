@@ -107,14 +107,22 @@ class PatientController {
 
       if (!result || !result.id) {
         // Tạo profile mới nếu chưa có
-        // Lấy email từ req.user.email nếu có, nếu không thì dùng userId làm fullName
         let fullName = req.user.email ? req.user.email.split('@')[0] : String(userId);
-        result = await patientService.createProfile(userId, {
-          fullName,
-          dateOfBirth: null,
-          sex: null,
-          phoneNumber: null
-        });
+        try {
+          result = await patientService.createProfile(userId, {
+            fullName,
+            dateOfBirth: null,
+            sex: null,
+            phoneNumber: null
+          });
+        } catch (error) {
+          // Nếu lỗi là profile đã tồn tại thì lấy lại profile và trả về
+          if (error && error.message && error.message.includes('Patient profile already exists')) {
+            result = await patientService.getProfile(userId);
+          } else {
+            throw error;
+          }
+        }
       }
 
       res.json(result);
