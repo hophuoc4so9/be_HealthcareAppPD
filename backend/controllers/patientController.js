@@ -95,8 +95,20 @@ class PatientController {
   async getMyProfile(req, res, next) {
     try {
       const userId = req.user.id;
-      const result = await patientService.getProfile(userId);
-      
+      let result = await patientService.getProfile(userId);
+
+      if (!result || !result.id) {
+        // Tạo profile mới nếu chưa có
+        // Lấy email từ req.user.email nếu có, nếu không thì dùng userId làm fullName
+        let fullName = req.user.email ? req.user.email.split('@')[0] : String(userId);
+        result = await patientService.createProfile(userId, {
+          fullName,
+          dateOfBirth: null,
+          sex: null,
+          phoneNumber: null
+        });
+      }
+
       res.json(result);
     } catch (error) {
       next(error);
