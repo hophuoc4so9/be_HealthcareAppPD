@@ -80,9 +80,17 @@ class PatientController {
       }
 
       const userId = req.user.id;
-      const result = await patientService.createProfile(userId, req.body);
-      
-      res.status(201).json(result);
+      try {
+        const result = await patientService.createProfile(userId, req.body);
+        return res.status(201).json(result);
+      } catch (error) {
+        // Nếu lỗi là profile đã tồn tại thì chuyển sang update
+        if (error && error.message && error.message.includes('Patient profile already exists')) {
+          const result = await patientService.updateProfile(userId, req.body);
+          return res.status(200).json(result);
+        }
+        throw error;
+      }
     } catch (error) {
       next(error);
     }
