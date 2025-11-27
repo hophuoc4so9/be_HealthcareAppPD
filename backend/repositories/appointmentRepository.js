@@ -129,7 +129,7 @@ class AppointmentRepository {
   async updateAppointmentStatus(id, status) {
     const query = `
       UPDATE appointments
-      SET status = $1, updated_at = NOW()
+      SET status = $1
       WHERE id = $2
       RETURNING *
     `;
